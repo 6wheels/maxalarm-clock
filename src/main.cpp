@@ -86,16 +86,16 @@ void showCurrentTime()
 
 void setYear()
 {
-    int value = 0;
+    int value = currentDateTime.Year();
     if (!digitalRead(INCR_SWITCH))
     {
-        value += 1;
+        value++;
     }
     if (!digitalRead(DECR_SWITCH))
     {
-        value -= 1;
+        value--;
     }
-    currentDateTime = RtcDateTime(currentDateTime.Year() + value,
+    currentDateTime = RtcDateTime(value,
                                   currentDateTime.Month(),
                                   currentDateTime.Day(),
                                   currentDateTime.Hour(),
@@ -105,31 +105,31 @@ void setYear()
 
 void setMonth()
 {
-    int value = 0;
+    int value = currentDateTime.Month();
     if (!digitalRead(INCR_SWITCH))
     {
         if (currentDateTime.Month() == 12)
         {
-            value -= 11;
+            value = 1;
         }
         else
         {
-            value += 1;
+            value++;
         }
     }
     if (!digitalRead(DECR_SWITCH))
     {
         if (currentDateTime.Month() == 1)
         {
-            value += 11;
+            value = 12;
         }
         else
         {
-            value -= 1;
+            value--;
         }
     }
     currentDateTime = RtcDateTime(currentDateTime.Year(),
-                                  currentDateTime.Month() + value,
+                                  value,
                                   currentDateTime.Day(),
                                   currentDateTime.Hour(),
                                   currentDateTime.Minute(),
@@ -138,32 +138,43 @@ void setMonth()
 
 void setDay()
 {
-    int value = 0;
+    int value = currentDateTime.Day();
+    int nbDaysInMonth = 0;
+    if (currentDateTime.Month() == 2)
+    {
+        // compute number of days in the current month, according to the current year (leap or not)
+        int year = currentDateTime.Year();
+        nbDaysInMonth = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+    }
+    else
+    {
+        nbDaysInMonth = currentDateTime.Month() % 2 != 0 ? 31 : 30;
+    }
     if (!digitalRead(INCR_SWITCH))
     {
-        if (currentDateTime.Day() == 31)
+        if (currentDateTime.Day() == nbDaysInMonth)
         {
-            value -= 30;
+            value = 1;
         }
         else
         {
-            value += 1;
+            value++;
         }
     }
     if (!digitalRead(DECR_SWITCH))
     {
         if (currentDateTime.Day() == 1)
         {
-            value += 30;
+            value = nbDaysInMonth;
         }
         else
         {
-            value -= 1;
+            value--;
         }
     }
     currentDateTime = RtcDateTime(currentDateTime.Year(),
                                   currentDateTime.Month(),
-                                  currentDateTime.Day() + value,
+                                  value,
                                   currentDateTime.Hour(),
                                   currentDateTime.Minute(),
                                   currentDateTime.Second());
@@ -171,66 +182,66 @@ void setDay()
 
 void setHour()
 {
-    int value = 0;
+    int value = currentDateTime.Hour();
     if (!digitalRead(INCR_SWITCH))
     {
         if (currentDateTime.Hour() == 23)
         {
-            value -= 23;
+            value = 1;
         }
         else
         {
-            value += 1;
+            value++;
         }
     }
     if (!digitalRead(DECR_SWITCH))
     {
         if (currentDateTime.Hour() == 1)
         {
-            value += 23;
+            value = 23;
         }
         else
         {
-            value -= 1;
+            value--;
         }
     }
     currentDateTime = RtcDateTime(currentDateTime.Year(),
                                   currentDateTime.Month(),
                                   currentDateTime.Day(),
-                                  currentDateTime.Hour() + value,
+                                  value,
                                   currentDateTime.Minute(),
                                   currentDateTime.Second());
 }
 void setMinute()
 {
-    int value = 0;
+    int value = currentDateTime.Minute();
     if (!digitalRead(INCR_SWITCH))
     {
         if (currentDateTime.Minute() == 59)
         {
-            value -= 59;
+            value = 0;
         }
         else
         {
-            value += 1;
+            value++;
         }
     }
     if (!digitalRead(DECR_SWITCH))
     {
         if (currentDateTime.Minute() == 0)
         {
-            value += 59;
+            value = 59;
         }
         else
         {
-            value -= 1;
+            value--;
         }
     }
     currentDateTime = RtcDateTime(currentDateTime.Year(),
                                   currentDateTime.Month(),
                                   currentDateTime.Day(),
                                   currentDateTime.Hour(),
-                                  currentDateTime.Minute() + value,
+                                  value,
                                   currentDateTime.Second());
 }
 
