@@ -1,80 +1,49 @@
-// CONNECTIONS :
-// DS3231 SDA --> SDA
-// DS3231 SCL --> SCL
-// DS3231 VCC --> 3.3v or 5v
-// DS3231 GND --> GND
-
-/* for software wire use below
-#include <SoftwareWire.h>  // must be included here so that Arduino library object file references work
-#include <RtcDS3231.h>
-
-SoftwareWire myWire(SDA, SCL);
-RtcDS3231<SoftwareWire> Rtc(myWire);
- for software wire use above */
-
-/* for normal hardware wire use below */
-#include <Wire.h> // must be included here so that Arduino library object file references work
+#include <Wire.h>
 #include <RtcDS3231.h>
 RtcDS3231<TwoWire>
     Rtc(Wire);
-/* for normal hardware wire use above */
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
 // Door sensors / switches
 const int MODE_SWITCH = 2;
-const int INC_SWITCH = 3;
-const int DEC_SWITCH = 4;
+const int INCR_SWITCH = 3;
+const int DECR_SWITCH = 4;
 
-int MODE = 0; // running mode
+int mode = 0; // running mode
+
+RtcDateTime currentDateTime;
 
 void printDateTime(const RtcDateTime &dt)
 {
     char datestring[20];
-
     snprintf_P(datestring,
                countof(datestring),
-               PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
-               dt.Month(),
+               PSTR("%02u/%02u/%04u\t%02u:%02u:%02u"),
                dt.Day(),
+               dt.Month(),
                dt.Year(),
                dt.Hour(),
                dt.Minute(),
                dt.Second());
-    Serial.print(datestring);
+    Serial.println(datestring);
 }
 
 void setup()
 {
     Serial.begin(9600);
-
     Serial.print("compiled: ");
     Serial.print(__DATE__);
     Serial.println(__TIME__);
-
-    //--------RTC SETUP ------------
-    // if you are using ESP-01 then uncomment the line below to reset the pins to
-    // the available pins for SDA, SCL
-    // Wire.begin(0, 2); // due to limited pins, use pin 0 and 2 for SDA, SCL
 
     Rtc.Begin();
 
     RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
     printDateTime(compiled);
-    Serial.println();
 
     if (!Rtc.IsDateTimeValid())
     {
-        // Common Cuases:
-        //    1) first time you ran and the device wasn't running yet
-        //    2) the battery on the device is low or even missing
-
         Serial.println("RTC lost confidence in the DateTime!");
-
-        // following line sets the RTC to the date & time this sketch was compiled
-        // it will also reset the valid flag internally unless the Rtc device is
-        // having an issue
-
         Rtc.SetDateTime(compiled);
     }
 
@@ -84,17 +53,17 @@ void setup()
         Rtc.SetIsRunning(true);
     }
 
-    RtcDateTime now = Rtc.GetDateTime();
-    if (now < compiled)
+    currentDateTime = Rtc.GetDateTime();
+    if (currentDateTime < compiled)
     {
         Serial.println("RTC is older than compile time!  (Updating DateTime)");
         Rtc.SetDateTime(compiled);
     }
-    else if (now > compiled)
+    else if (currentDateTime > compiled)
     {
         Serial.println("RTC is newer than compile time. (this is expected)");
     }
-    else if (now == compiled)
+    else if (currentDateTime == compiled)
     {
         Serial.println("RTC is the same as compile time! (not expected but all is fine)");
     }
@@ -104,47 +73,219 @@ void setup()
     Rtc.Enable32kHzPin(false);
     Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
 
+    // buttons config
     pinMode(MODE_SWITCH, INPUT_PULLUP);
-    pinMode(INC_SWITCH, INPUT_PULLUP);
-    pinMode(DEC_SWITCH, INPUT_PULLUP);
+    pinMode(INCR_SWITCH, INPUT_PULLUP);
+    pinMode(DECR_SWITCH, INPUT_PULLUP);
+}
+
+void showCurrentTime()
+{
+    // will bw changed to displaying to the LED segments
+}
+
+void setYear()
+{
+    int value = 0;
+    if (!digitalRead(INCR_SWITCH))
+    {
+        value += 1;
+    }
+    if (!digitalRead(DECR_SWITCH))
+    {
+        value -= 1;
+    }
+    currentDateTime = RtcDateTime(currentDateTime.Year() + value,
+                                  currentDateTime.Month(),
+                                  currentDateTime.Day(),
+                                  currentDateTime.Hour(),
+                                  currentDateTime.Minute(),
+                                  currentDateTime.Second());
+}
+
+void setMonth()
+{
+    int value = 0;
+    if (!digitalRead(INCR_SWITCH))
+    {
+        if (currentDateTime.Month() == 12)
+        {
+            value -= 11;
+        }
+        else
+        {
+            value += 1;
+        }
+    }
+    if (!digitalRead(DECR_SWITCH))
+    {
+        if (currentDateTime.Month() == 1)
+        {
+            value += 11;
+        }
+        else
+        {
+            value -= 1;
+        }
+    }
+    currentDateTime = RtcDateTime(currentDateTime.Year(),
+                                  currentDateTime.Month() + value,
+                                  currentDateTime.Day(),
+                                  currentDateTime.Hour(),
+                                  currentDateTime.Minute(),
+                                  currentDateTime.Second());
+}
+
+void setDay()
+{
+    int value = 0;
+    if (!digitalRead(INCR_SWITCH))
+    {
+        if (currentDateTime.Day() == 31)
+        {
+            value -= 30;
+        }
+        else
+        {
+            value += 1;
+        }
+    }
+    if (!digitalRead(DECR_SWITCH))
+    {
+        if (currentDateTime.Day() == 1)
+        {
+            value += 30;
+        }
+        else
+        {
+            value -= 1;
+        }
+    }
+    currentDateTime = RtcDateTime(currentDateTime.Year(),
+                                  currentDateTime.Month(),
+                                  currentDateTime.Day() + value,
+                                  currentDateTime.Hour(),
+                                  currentDateTime.Minute(),
+                                  currentDateTime.Second());
+}
+
+void setHour()
+{
+    int value = 0;
+    if (!digitalRead(INCR_SWITCH))
+    {
+        if (currentDateTime.Hour() == 23)
+        {
+            value -= 23;
+        }
+        else
+        {
+            value += 1;
+        }
+    }
+    if (!digitalRead(DECR_SWITCH))
+    {
+        if (currentDateTime.Hour() == 1)
+        {
+            value += 23;
+        }
+        else
+        {
+            value -= 1;
+        }
+    }
+    currentDateTime = RtcDateTime(currentDateTime.Year(),
+                                  currentDateTime.Month(),
+                                  currentDateTime.Day(),
+                                  currentDateTime.Hour() + value,
+                                  currentDateTime.Minute(),
+                                  currentDateTime.Second());
+}
+void setMinute()
+{
+    int value = 0;
+    if (!digitalRead(INCR_SWITCH))
+    {
+        if (currentDateTime.Minute() == 59)
+        {
+            value -= 59;
+        }
+        else
+        {
+            value += 1;
+        }
+    }
+    if (!digitalRead(DECR_SWITCH))
+    {
+        if (currentDateTime.Minute() == 0)
+        {
+            value += 59;
+        }
+        else
+        {
+            value -= 1;
+        }
+    }
+    currentDateTime = RtcDateTime(currentDateTime.Year(),
+                                  currentDateTime.Month(),
+                                  currentDateTime.Day(),
+                                  currentDateTime.Hour(),
+                                  currentDateTime.Minute() + value,
+                                  currentDateTime.Second());
+}
+
+void setDatetime()
+{
+    Rtc.SetDateTime(currentDateTime);
 }
 
 void loop()
 {
-    if (!Rtc.IsDateTimeValid())
-    {
-        // Common Cuases:
-        //    1) the battery on the device is low or even missing and the power line was disconnected
-        Serial.println("RTC lost confidence in the DateTime!");
-    }
-
-    RtcDateTime now = Rtc.GetDateTime();
-    printDateTime(now);
-    Serial.println();
-
+    Serial.print("Mode: ");
+    Serial.println(mode);
+    // check if mode button is pressed
     if (!digitalRead(MODE_SWITCH))
     {
-        Serial.println("mode switch pressed!!!");
-        // update the mode
-        MODE = MODE == 0 ? 1 : 0;
-        Serial.print("MODE = ");
-        Serial.println(MODE);
+        mode += 1;
     }
 
-    // mode is to set hour
-    if (MODE == 1 && !digitalRead(INC_SWITCH))
+    // which mode to apply?
+    if (mode == 0)
     {
-        // increment hour
-        now += 3600;
-        Rtc.SetDateTime(now);
+        showCurrentTime();
     }
-    // mode is to set hour
-    if (MODE == 1 && !digitalRead(DEC_SWITCH))
+    if (mode == 1)
     {
-        // increment hour
-        now -= 3600;
-        Rtc.SetDateTime(now);
+        setYear();
     }
-
-    delay(500);
+    if (mode == 2)
+    {
+        setMonth();
+    }
+    if (mode == 3)
+    {
+        setDay();
+    }
+    if (mode == 4)
+    {
+        setHour();
+    }
+    if (mode == 5)
+    {
+        setMinute();
+    }
+    if (mode == 6)
+    {
+        setDatetime();
+        mode = 0;
+    }
+    if (mode != 0)
+    {
+        printDateTime(currentDateTime);
+    }
+    else
+    {
+        printDateTime(Rtc.GetDateTime());
+    }
+    delay(250);
 }
