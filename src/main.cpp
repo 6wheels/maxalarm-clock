@@ -5,12 +5,36 @@ RtcDS3231<TwoWire>
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
-// Door sensors / switches
-const int MODE_SWITCH = 2;
-const int INCR_SWITCH = 3;
-const int DECR_SWITCH = 4;
+// Push buttons for clock setup
+const int MODE_SWITCH = 9;
+const int INCR_SWITCH = 10;
+const int DECR_SWITCH = 11;
+
+// asleep / awake LEDs
+const int asleepLed = A2;
+const int awakeLed = A3;
+
+#include <TimerOne.h>
+
+//Define 74HC595 Connections with arduino
+const int Data = 7;
+const int Clock = 8;
+const int Latch = 6;
+
+const int SEG0 = 2;
+const int SEG1 = 3;
+const int SEG2 = 4;
+const int SEG3 = 5;
+
+int cc = 0;
+char Value[4];
+
+//Refer Table 4.1 7-Segment Decoding
+const char SegData[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 
 int mode = 0; // running mode
+
+bool sleepMode = true;
 
 RtcDateTime currentDateTime;
 
@@ -26,7 +50,87 @@ void printDateTime(const RtcDateTime &dt)
                dt.Hour(),
                dt.Minute(),
                dt.Second());
-    Serial.println(datestring);
+    // Serial.println(datestring);
+}
+
+// void display(unsigned char num)
+// {
+//     digitalWrite(latch, LOW);
+//     shiftOut(data, clock, MSBFIRST, table[num]);
+//     digitalWrite(latch, HIGH);
+// }
+
+//=============================================================
+//             Generates Bargraph
+//=============================================================
+void DisplayDigit(char d)
+{
+    int i;
+
+    for (i = 0; i < 8; i++) //Shift bit by bit data in shift register
+    {
+        if ((d & 0x80) == 0x80)
+        {
+            digitalWrite(Data, HIGH);
+        }
+        else
+        {
+            digitalWrite(Data, LOW);
+        }
+        d = d << 1;
+
+        //Give Clock pulse
+        digitalWrite(Clock, LOW);
+        digitalWrite(Clock, HIGH);
+    }
+    //Latch the data
+    digitalWrite(Latch, LOW);
+    digitalWrite(Latch, HIGH);
+}
+
+//===================================================================
+//		SCAN DISPLAY FUNCTION
+//===================================================================
+void Scanner()
+{
+    switch (cc) //Depending on which digit is selcted give output
+    {
+    case 1:
+        digitalWrite(SEG3, HIGH);
+        DisplayDigit(SegData[Value[0]]);
+        digitalWrite(SEG0, LOW);
+        break;
+    case 2:
+        digitalWrite(SEG0, HIGH);
+        DisplayDigit(SegData[Value[1]] | 0x80); //0x80 to turn on decimal point
+        digitalWrite(SEG1, LOW);
+        break;
+    case 3:
+        digitalWrite(SEG1, HIGH);
+        DisplayDigit(SegData[Value[2]]);
+        digitalWrite(SEG2, LOW);
+        break;
+    case 4:
+        digitalWrite(SEG2, HIGH);
+        DisplayDigit(SegData[Value[3]]);
+        digitalWrite(SEG3, LOW);
+        break;
+    }
+}
+//===================================================================
+
+//===================================================================
+//			TIMER 1 OVERFLOW INTTERRUPT FOR DISPALY
+//===================================================================
+void timerIsr()
+{
+    cc++;
+    if (cc == 5) //We have only 4 digits
+    {
+        cc = 1;
+    }
+    Scanner();
+    TCNT0 = 0xCC;
 }
 
 void setup()
@@ -77,6 +181,23 @@ void setup()
     pinMode(MODE_SWITCH, INPUT_PULLUP);
     pinMode(INCR_SWITCH, INPUT_PULLUP);
     pinMode(DECR_SWITCH, INPUT_PULLUP);
+
+    // sleep / awake LED
+    pinMode(awakeLed, OUTPUT);
+    pinMode(asleepLed, OUTPUT);
+
+    pinMode(Data, OUTPUT);
+    pinMode(Clock, OUTPUT);
+    pinMode(Latch, OUTPUT);
+    pinMode(SEG0, OUTPUT);
+    pinMode(SEG1, OUTPUT);
+    pinMode(SEG2, OUTPUT);
+    pinMode(SEG3, OUTPUT);
+
+    //Initialize Display Scanner
+    cc = 0;
+    Timer1.initialize(5000);          // set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second)
+    Timer1.attachInterrupt(timerIsr); // attach the service routine here
 }
 
 void showCurrentTime()
@@ -253,8 +374,6 @@ void setDatetime()
 
 void loop()
 {
-    Serial.print("Mode: ");
-    Serial.println(mode);
     // check if mode button is pressed
     if (!digitalRead(MODE_SWITCH))
     {
@@ -299,5 +418,15 @@ void loop()
     {
         printDateTime(Rtc.GetDateTime());
     }
-    delay(250);
+
+    digitalWrite(awakeLed, !sleepMode);
+    digitalWrite(asleepLed, sleepMode);
+
+    char currentDisplay[4];
+    sprintf(currentDisplay, "%02d%02d", Rtc.GetDateTime().Hour(), Rtc.GetDateTime().Minute());
+
+    Value[0] = currentDisplay[0] & 0x0F; //Anding with 0x0F to remove upper nibble
+    Value[1] = currentDisplay[1] & 0x0F; //Ex. number 2 in ASCII is 0x32 we want only 2
+    Value[2] = currentDisplay[2] & 0x0F;
+    Value[3] = currentDisplay[3] & 0x0F;
 }
