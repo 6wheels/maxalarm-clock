@@ -148,7 +148,8 @@ void setDay()
     }
     else
     {
-        nbDaysInMonth = currentDateTime.Month() % 2 != 0 ? 31 : 30;
+        int month = currentDateTime.Month();
+        nbDaysInMonth = month <= 7 ? (month % 2 != 0 ? 31 : 30) : (month % 2 == 0 ? 31 : 30);
     }
     if (!digitalRead(INCR_SWITCH))
     {
