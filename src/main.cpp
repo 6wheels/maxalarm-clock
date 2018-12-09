@@ -1,44 +1,57 @@
 #include <Wire.h>
 #include <RtcDS3231.h>
+#include <Button.h>
 RtcDS3231<TwoWire> Rtc(Wire);
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
+// ----- PIN definition
 // Push buttons for clock setup
-const int MODE_SWITCH = 9;
-const int INCR_SWITCH = 10;
-const int DECR_SWITCH = 11;
+const int MODE_SW_PIN = 9;
+const int PLUS_SW_PIN = 10;
+const int MINUS_SW_PIN = 11;
 
 // asleep / awake LEDs
 const int asleepLed = A2;
 const int awakeLed = A3;
+// -----
 
-int mode = 0;           // running mode
+// ----- Global vars
+int mode = 0;           // running mode = 0, set year = 1, set month = 2, etc.
 bool sleepMode = false; // tells which led to turn on
+RtcDateTime setupDateTime;
+unsigned long displayTimer = 0; // currently used for debugging purpose
 
-RtcDateTime currentDateTime;
+// ----- Buttons
+Button modeButton(MODE_SW_PIN);
+Button plusButton(PLUS_SW_PIN);
+Button minusButton(MINUS_SW_PIN);
 
-void printDateTime(const RtcDateTime &dt)
+void printToSerial(const RtcDateTime &dt)
 {
-    Serial.print("Mode: ");
-    Serial.print(mode);
-    Serial.print(" ");
-    Serial.print("SleepMode: ");
-    Serial.print(sleepMode);
-    Serial.print(" ");
-    Serial.print("WD: ");
-    char datestring[22];
-    snprintf_P(datestring,
-               countof(datestring),
-               PSTR("%1u %02u/%02u/%04u %02u:%02u:%02u"),
-               dt.DayOfWeek(),
-               dt.Day(),
-               dt.Month(),
-               dt.Year(),
-               dt.Hour(),
-               dt.Minute(),
-               dt.Second());
-    Serial.println(datestring);
+    if (millis() >= displayTimer)
+    {
+        Serial.print("Mode: ");
+        Serial.print(mode);
+        Serial.print(" ");
+        Serial.print("SleepMode: ");
+        Serial.print(sleepMode);
+        Serial.print(" ");
+        Serial.print("WD: ");
+        char datestring[22];
+        snprintf_P(datestring,
+                   countof(datestring),
+                   PSTR("%1u %02u/%02u/%04u %02u:%02u:%02u"),
+                   dt.DayOfWeek(),
+                   dt.Day(),
+                   dt.Month(),
+                   dt.Year(),
+                   dt.Hour(),
+                   dt.Minute(),
+                   dt.Second());
+        Serial.println(datestring);
+        displayTimer = millis() + 1000;
+    }
 }
 
 void setup()
@@ -49,9 +62,12 @@ void setup()
     Serial.println(__TIME__);
 
     Rtc.Begin();
+    modeButton.begin();
+    plusButton.begin();
+    minusButton.begin();
 
     RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
-    printDateTime(compiled);
+    printToSerial(compiled);
 
     if (!Rtc.IsDateTimeValid())
     {
@@ -65,17 +81,17 @@ void setup()
         Rtc.SetIsRunning(true);
     }
 
-    currentDateTime = Rtc.GetDateTime();
-    if (currentDateTime < compiled)
+    RtcDateTime storedDate = Rtc.GetDateTime();
+    if (storedDate < compiled)
     {
         Serial.println("RTC is older than compile time!  (Updating DateTime)");
         Rtc.SetDateTime(compiled);
     }
-    else if (currentDateTime > compiled)
+    else if (storedDate > compiled)
     {
         Serial.println("RTC is newer than compile time. (this is expected)");
     }
-    else if (currentDateTime == compiled)
+    else if (storedDate == compiled)
     {
         Serial.println("RTC is the same as compile time! (not expected but all is fine)");
     }
@@ -84,11 +100,6 @@ void setup()
     // just clear them to your needed state
     Rtc.Enable32kHzPin(false);
     Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
-
-    // buttons config
-    pinMode(MODE_SWITCH, INPUT_PULLUP);
-    pinMode(INCR_SWITCH, INPUT_PULLUP);
-    pinMode(DECR_SWITCH, INPUT_PULLUP);
 
     // sleep / awake LED
     pinMode(awakeLed, OUTPUT);
@@ -102,29 +113,29 @@ void showCurrentTime()
 
 void setYear()
 {
-    int value = currentDateTime.Year();
-    if (!digitalRead(INCR_SWITCH))
+    int value = setupDateTime.Year();
+    if (plusButton.isReleased())
     {
         value++;
     }
-    if (!digitalRead(DECR_SWITCH))
+    if (minusButton.isReleased())
     {
         value--;
     }
-    currentDateTime = RtcDateTime(value,
-                                  currentDateTime.Month(),
-                                  currentDateTime.Day(),
-                                  currentDateTime.Hour(),
-                                  currentDateTime.Minute(),
-                                  currentDateTime.Second());
+    setupDateTime = RtcDateTime(value,
+                                setupDateTime.Month(),
+                                setupDateTime.Day(),
+                                setupDateTime.Hour(),
+                                setupDateTime.Minute(),
+                                setupDateTime.Second());
 }
 
 void setMonth()
 {
-    int value = currentDateTime.Month();
-    if (!digitalRead(INCR_SWITCH))
+    int value = setupDateTime.Month();
+    if (plusButton.isReleased())
     {
-        if (currentDateTime.Month() == 12)
+        if (value == 12)
         {
             value = 1;
         }
@@ -133,9 +144,9 @@ void setMonth()
             value++;
         }
     }
-    if (!digitalRead(DECR_SWITCH))
+    if (minusButton.isReleased())
     {
-        if (currentDateTime.Month() == 1)
+        if (value == 1)
         {
             value = 12;
         }
@@ -144,32 +155,32 @@ void setMonth()
             value--;
         }
     }
-    currentDateTime = RtcDateTime(currentDateTime.Year(),
-                                  value,
-                                  currentDateTime.Day(),
-                                  currentDateTime.Hour(),
-                                  currentDateTime.Minute(),
-                                  currentDateTime.Second());
+    setupDateTime = RtcDateTime(setupDateTime.Year(),
+                                value,
+                                setupDateTime.Day(),
+                                setupDateTime.Hour(),
+                                setupDateTime.Minute(),
+                                setupDateTime.Second());
 }
 
 void setDay()
 {
-    int value = currentDateTime.Day();
+    int value = setupDateTime.Day();
     int nbDaysInMonth = 0;
-    if (currentDateTime.Month() == 2)
+    if (setupDateTime.Month() == 2)
     {
         // compute number of days in the current month, according to the current year (leap or not)
-        int year = currentDateTime.Year();
+        int year = setupDateTime.Year();
         nbDaysInMonth = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
     }
     else
     {
-        int month = currentDateTime.Month();
+        int month = setupDateTime.Month();
         nbDaysInMonth = month <= 7 ? (month % 2 != 0 ? 31 : 30) : (month % 2 == 0 ? 31 : 30);
     }
-    if (!digitalRead(INCR_SWITCH))
+    if (plusButton.isReleased())
     {
-        if (currentDateTime.Day() == nbDaysInMonth)
+        if (value == nbDaysInMonth)
         {
             value = 1;
         }
@@ -178,9 +189,9 @@ void setDay()
             value++;
         }
     }
-    if (!digitalRead(DECR_SWITCH))
+    if (minusButton.isReleased())
     {
-        if (currentDateTime.Day() == 1)
+        if (value == 1)
         {
             value = nbDaysInMonth;
         }
@@ -189,20 +200,20 @@ void setDay()
             value--;
         }
     }
-    currentDateTime = RtcDateTime(currentDateTime.Year(),
-                                  currentDateTime.Month(),
-                                  value,
-                                  currentDateTime.Hour(),
-                                  currentDateTime.Minute(),
-                                  currentDateTime.Second());
+    setupDateTime = RtcDateTime(setupDateTime.Year(),
+                                setupDateTime.Month(),
+                                value,
+                                setupDateTime.Hour(),
+                                setupDateTime.Minute(),
+                                setupDateTime.Second());
 }
 
 void setHour()
 {
-    int value = currentDateTime.Hour();
-    if (!digitalRead(INCR_SWITCH))
+    int value = setupDateTime.Hour();
+    if (plusButton.isReleased())
     {
-        if (currentDateTime.Hour() == 23)
+        if (value == 23)
         {
             value = 1;
         }
@@ -211,9 +222,9 @@ void setHour()
             value++;
         }
     }
-    if (!digitalRead(DECR_SWITCH))
+    if (minusButton.isReleased())
     {
-        if (currentDateTime.Hour() == 1)
+        if (value == 1)
         {
             value = 23;
         }
@@ -222,19 +233,19 @@ void setHour()
             value--;
         }
     }
-    currentDateTime = RtcDateTime(currentDateTime.Year(),
-                                  currentDateTime.Month(),
-                                  currentDateTime.Day(),
-                                  value,
-                                  currentDateTime.Minute(),
-                                  currentDateTime.Second());
+    setupDateTime = RtcDateTime(setupDateTime.Year(),
+                                setupDateTime.Month(),
+                                setupDateTime.Day(),
+                                value,
+                                setupDateTime.Minute(),
+                                setupDateTime.Second());
 }
 void setMinute()
 {
-    int value = currentDateTime.Minute();
-    if (!digitalRead(INCR_SWITCH))
+    int value = setupDateTime.Minute();
+    if (plusButton.isReleased())
     {
-        if (currentDateTime.Minute() == 59)
+        if (value == 59)
         {
             value = 0;
         }
@@ -243,9 +254,9 @@ void setMinute()
             value++;
         }
     }
-    if (!digitalRead(DECR_SWITCH))
+    if (minusButton.isReleased())
     {
-        if (currentDateTime.Minute() == 0)
+        if (value == 0)
         {
             value = 59;
         }
@@ -254,24 +265,24 @@ void setMinute()
             value--;
         }
     }
-    currentDateTime = RtcDateTime(currentDateTime.Year(),
-                                  currentDateTime.Month(),
-                                  currentDateTime.Day(),
-                                  currentDateTime.Hour(),
-                                  value,
-                                  currentDateTime.Second());
+    setupDateTime = RtcDateTime(setupDateTime.Year(),
+                                setupDateTime.Month(),
+                                setupDateTime.Day(),
+                                setupDateTime.Hour(),
+                                value,
+                                setupDateTime.Second());
 }
 
 void setDatetime()
 {
-    Rtc.SetDateTime(currentDateTime);
+    Rtc.SetDateTime(setupDateTime);
 }
 
 void loop()
 {
     RtcDateTime now = Rtc.GetDateTime();
     // check if mode button is pressed
-    if (!digitalRead(MODE_SWITCH))
+    if (modeButton.isReleased())
     {
         mode += 1;
     }
@@ -308,11 +319,11 @@ void loop()
     }
     if (mode != 0)
     {
-        printDateTime(currentDateTime);
+        printToSerial(setupDateTime);
     }
     else
     {
-        printDateTime(now);
+        printToSerial(now);
     }
 
     // alarms
@@ -329,5 +340,4 @@ void loop()
 
     digitalWrite(awakeLed, !sleepMode);
     digitalWrite(asleepLed, sleepMode);
-    delay(250);
 }
