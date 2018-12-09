@@ -20,7 +20,7 @@ class Button
 
     bool isReleased()
     {
-        bool v = !digitalRead(_pin);
+        bool v = digitalRead(_pin);
         if (v != _state)
         {
             _state = v;
