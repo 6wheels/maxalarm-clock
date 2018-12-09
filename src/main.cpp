@@ -81,17 +81,17 @@ void setup()
         Rtc.SetIsRunning(true);
     }
 
-    RtcDateTime storedDate = Rtc.GetDateTime();
-    if (storedDate < compiled)
+    setupDateTime = Rtc.GetDateTime();
+    if (setupDateTime < compiled)
     {
         Serial.println("RTC is older than compile time!  (Updating DateTime)");
         Rtc.SetDateTime(compiled);
     }
-    else if (storedDate > compiled)
+    else if (setupDateTime > compiled)
     {
         Serial.println("RTC is newer than compile time. (this is expected)");
     }
-    else if (storedDate == compiled)
+    else if (setupDateTime == compiled)
     {
         Serial.println("RTC is the same as compile time! (not expected but all is fine)");
     }
