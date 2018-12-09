@@ -1,7 +1,9 @@
 #include <Wire.h>
 #include <RtcDS3231.h>
-#include <Button.h>
 RtcDS3231<TwoWire> Rtc(Wire);
+
+// Local libs
+#include <Button.h>
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
@@ -198,35 +200,32 @@ void loop()
     }
 
     // which mode to apply?
-    if (mode == 0)
+    switch (mode)
     {
+    case 0:
         showCurrentTime();
-    }
-    if (mode == 1)
-    {
+        break;
+    case 1:
         setYear();
-    }
-    if (mode == 2)
-    {
+        break;
+    case 2:
         setMonth();
-    }
-    if (mode == 3)
-    {
+        break;
+    case 3:
         setDay();
-    }
-    if (mode == 4)
-    {
+        break;
+    case 4:
         setHour();
-    }
-    if (mode == 5)
-    {
+        break;
+    case 5:
         setMinute();
-    }
-    if (mode == 6)
-    {
+        break;
+    default:
         setDatetime();
         mode = 0;
+        break;
     }
+
     if (mode != 0)
     {
         printToSerial(setupDateTime);
