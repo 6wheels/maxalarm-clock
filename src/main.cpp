@@ -26,6 +26,7 @@ unsigned long displayTimer = 0; // currently used for debugging purpose
 Button modeButton(MODE_SW_PIN);
 Button plusButton(PLUS_SW_PIN);
 Button minusButton(MINUS_SW_PIN);
+// -----
 
 void printToSerial(const RtcDateTime &dt)
 {
@@ -114,14 +115,7 @@ void showCurrentTime()
 void setYear()
 {
     int value = setupDateTime.Year();
-    if (plusButton.isReleased())
-    {
-        value++;
-    }
-    if (minusButton.isReleased())
-    {
-        value--;
-    }
+    value = plusButton.isReleased() ? value + 1 : minusButton.isReleased() ? value - 1 : value;
     setupDateTime = RtcDateTime(value,
                                 setupDateTime.Month(),
                                 setupDateTime.Day(),
@@ -133,28 +127,7 @@ void setYear()
 void setMonth()
 {
     int value = setupDateTime.Month();
-    if (plusButton.isReleased())
-    {
-        if (value == 12)
-        {
-            value = 1;
-        }
-        else
-        {
-            value++;
-        }
-    }
-    if (minusButton.isReleased())
-    {
-        if (value == 1)
-        {
-            value = 12;
-        }
-        else
-        {
-            value--;
-        }
-    }
+    value = plusButton.isReleased() ? (value == 12 ? 1 : value + 1) : (minusButton.isReleased() ? value == 1 ? 12 : value - 1 : value);
     setupDateTime = RtcDateTime(setupDateTime.Year(),
                                 value,
                                 setupDateTime.Day(),
@@ -178,28 +151,7 @@ void setDay()
         int month = setupDateTime.Month();
         nbDaysInMonth = month <= 7 ? (month % 2 != 0 ? 31 : 30) : (month % 2 == 0 ? 31 : 30);
     }
-    if (plusButton.isReleased())
-    {
-        if (value == nbDaysInMonth)
-        {
-            value = 1;
-        }
-        else
-        {
-            value++;
-        }
-    }
-    if (minusButton.isReleased())
-    {
-        if (value == 1)
-        {
-            value = nbDaysInMonth;
-        }
-        else
-        {
-            value--;
-        }
-    }
+    value = plusButton.isReleased() ? (value == nbDaysInMonth ? 1 : value + 1) : (minusButton.isReleased() ? (value == 1 ? nbDaysInMonth : value - 1) : value);
     setupDateTime = RtcDateTime(setupDateTime.Year(),
                                 setupDateTime.Month(),
                                 value,
@@ -211,28 +163,7 @@ void setDay()
 void setHour()
 {
     int value = setupDateTime.Hour();
-    if (plusButton.isReleased())
-    {
-        if (value == 23)
-        {
-            value = 1;
-        }
-        else
-        {
-            value++;
-        }
-    }
-    if (minusButton.isReleased())
-    {
-        if (value == 1)
-        {
-            value = 23;
-        }
-        else
-        {
-            value--;
-        }
-    }
+    value = plusButton.isReleased() ? (value == 23 ? 0 : value + 1) : (minusButton.isReleased() ? (value == 0 ? 23 : value - 1) : value);
     setupDateTime = RtcDateTime(setupDateTime.Year(),
                                 setupDateTime.Month(),
                                 setupDateTime.Day(),
@@ -243,28 +174,7 @@ void setHour()
 void setMinute()
 {
     int value = setupDateTime.Minute();
-    if (plusButton.isReleased())
-    {
-        if (value == 59)
-        {
-            value = 0;
-        }
-        else
-        {
-            value++;
-        }
-    }
-    if (minusButton.isReleased())
-    {
-        if (value == 0)
-        {
-            value = 59;
-        }
-        else
-        {
-            value--;
-        }
-    }
+    value = plusButton.isReleased() ? (value == 59 ? 0 : value + 1) : (minusButton.isReleased() ? (value == 0 ? 59 : value - 1) : value);
     setupDateTime = RtcDateTime(setupDateTime.Year(),
                                 setupDateTime.Month(),
                                 setupDateTime.Day(),
