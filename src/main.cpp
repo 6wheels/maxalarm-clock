@@ -4,6 +4,7 @@ RtcDS3231<TwoWire> Rtc(Wire);
 
 // Local libs
 #include <Button.h>
+#include <DateTimeUtils.h>
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
@@ -141,18 +142,7 @@ void setMonth()
 void setDay()
 {
     int value = setupDateTime.Day();
-    int nbDaysInMonth = 0;
-    if (setupDateTime.Month() == 2)
-    {
-        // compute number of days in the current month, according to the current year (leap or not)
-        int year = setupDateTime.Year();
-        nbDaysInMonth = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
-    }
-    else
-    {
-        int month = setupDateTime.Month();
-        nbDaysInMonth = month <= 7 ? (month % 2 != 0 ? 31 : 30) : (month % 2 == 0 ? 31 : 30);
-    }
+    int nbDaysInMonth = daysInMonth(setupDateTime.Year(), setupDateTime.Month());
     value = plusButton.isReleased() ? (value == nbDaysInMonth ? 1 : value + 1) : (minusButton.isReleased() ? (value == 1 ? nbDaysInMonth : value - 1) : value);
     setupDateTime = RtcDateTime(setupDateTime.Year(),
                                 setupDateTime.Month(),
