@@ -13,9 +13,8 @@ const int DECR_SWITCH = 11;
 const int asleepLed = A2;
 const int awakeLed = A3;
 
-int mode = 0; // running mode
-
-bool sleepMode = true;
+int mode = 0;           // running mode
+bool sleepMode = false; // tells which led to turn on
 
 RtcDateTime currentDateTime;
 
@@ -23,11 +22,16 @@ void printDateTime(const RtcDateTime &dt)
 {
     Serial.print("Mode: ");
     Serial.print(mode);
-    Serial.print("\t");
-    char datestring[20];
+    Serial.print(" ");
+    Serial.print("SleepMode: ");
+    Serial.print(sleepMode);
+    Serial.print(" ");
+    Serial.print("WD: ");
+    char datestring[22];
     snprintf_P(datestring,
                countof(datestring),
-               PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
+               PSTR("%1u %02u/%02u/%04u %02u:%02u:%02u"),
+               dt.DayOfWeek(),
                dt.Day(),
                dt.Month(),
                dt.Year(),
@@ -265,6 +269,7 @@ void setDatetime()
 
 void loop()
 {
+    RtcDateTime now = Rtc.GetDateTime();
     // check if mode button is pressed
     if (!digitalRead(MODE_SWITCH))
     {
@@ -307,7 +312,19 @@ void loop()
     }
     else
     {
-        printDateTime(Rtc.GetDateTime());
+        printDateTime(now);
+    }
+
+    // alarms
+    // weekdays 20:00-07:30
+    // weekends 20:00-08:00 and 13:00-15:00
+    if (now.DayOfWeek() == 0 || now.DayOfWeek() == 6)
+    {
+        sleepMode = !((now.Hour() >= 15 && now.Hour() < 20) || (now.Hour() >= 8 && now.Hour() < 13));
+    }
+    else
+    {
+        sleepMode = !((now.Hour() > 7 || (now.Hour() == 7 && now.Minute() >= 30)) && now.Hour() < 20);
     }
 
     digitalWrite(awakeLed, !sleepMode);
