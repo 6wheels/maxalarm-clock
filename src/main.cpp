@@ -10,13 +10,13 @@ RtcDS3231<TwoWire> Rtc(Wire);
 
 // ----- PIN definition
 // Push buttons for clock setup
-const int MODE_SW_PIN = 9;
+const int MODE_SW_PIN = 8;
+const int MINUS_SW_PIN = 9;
 const int PLUS_SW_PIN = 10;
-const int MINUS_SW_PIN = 11;
 
 // asleep / awake LEDs
-const int asleepLed = A2;
-const int awakeLed = A3;
+const int awakeLed = 6;
+const int asleepLed = 7;
 // -----
 
 // ----- Global vars
