@@ -3,8 +3,8 @@
 RtcDS3231<TwoWire> Rtc(Wire);
 
 // Local libs
-#include <Button.h>
-#include <DateTimeUtils.h>
+#include "Button.h"
+#include "DateTimeUtils.h"
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
