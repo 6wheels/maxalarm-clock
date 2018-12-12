@@ -25,6 +25,14 @@ OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
 
+// ----- Enum
+typedef enum
+{
+    PLUS,
+    MINUS
+} updateAction;
+// ----
+
 // ----- Prototypes
 void printDateTime(time_t t);
 void printDateTime(tmElements_t t);
@@ -32,8 +40,11 @@ void modeBtnClick();
 void minusBtnClick();
 void plusBtnClick();
 void displayClock();
-void incrementYear();
-void decrementYear();
+void updateYear(updateAction action);
+void updateMonth(updateAction action);
+void updateDay(updateAction action);
+void updateHour(updateAction action);
+void updateMinute(updateAction action);
 // -----
 
 void setup()
@@ -62,33 +73,15 @@ void loop()
     plusBtn.tick();
 
     // update the timeToSet
-    RTC.read(timeToSet);
-
-    // manage clock mode
-    switch (clockMode)
+    if (clockMode == 0)
     {
-    case 0:
+        RTC.read(timeToSet);
         displayClock();
-        break;
-    case 1:
-        // setupYear();
-        break;
-    case 2:
-        // setupMonth();
-        break;
-    case 3:
-        // setupDay();
-        break;
-    case 4:
-        // setupHour();
-        break;
-    case 5:
-        // setupMinute();
-        break;
-    default:
+    }
+    else if (clockMode == 6)
+    {
         RTC.write(timeToSet);
         clockMode = 0;
-        break;
     }
 
     if (millis() >= displayTimer)
@@ -116,7 +109,19 @@ void minusBtnClick()
     switch (clockMode)
     {
     case 1:
-        decrementYear();
+        updateYear(MINUS);
+        break;
+    case 2:
+        updateMonth(MINUS);
+        break;
+    case 3:
+        updateDay(MINUS);
+        break;
+    case 4:
+        updateHour(MINUS);
+        break;
+    case 5:
+        updateMinute(MINUS);
         break;
     }
 }
@@ -126,7 +131,19 @@ void plusBtnClick()
     switch (clockMode)
     {
     case 1:
-        incrementYear();
+        updateYear(PLUS);
+        break;
+    case 2:
+        updateMonth(PLUS);
+        break;
+    case 3:
+        updateDay(PLUS);
+        break;
+    case 4:
+        updateHour(PLUS);
+        break;
+    case 5:
+        updateMinute(PLUS);
         break;
     }
 }
@@ -135,13 +152,60 @@ void displayClock()
 {
 }
 
-void decrementYear()
+void updateYear(updateAction action)
 {
-    timeToSet.Year--;
+    if (action == PLUS)
+    {
+        timeToSet.Year++;
+    }
+    else
+    {
+        timeToSet.Year--;
+    }
 }
-void incrementYear()
+void updateMonth(updateAction action)
 {
-    timeToSet.Year++;
+    if (action == PLUS)
+    {
+        timeToSet.Month++;
+    }
+    else
+    {
+        timeToSet.Month--;
+    }
+}
+void updateDay(updateAction action)
+{
+    if (action == PLUS)
+    {
+        timeToSet.Day++;
+    }
+    else
+    {
+        timeToSet.Day--;
+    }
+}
+void updateHour(updateAction action)
+{
+    if (action == PLUS)
+    {
+        timeToSet.Hour++;
+    }
+    else
+    {
+        timeToSet.Hour--;
+    }
+}
+void updateMinute(updateAction action)
+{
+    if (action == PLUS)
+    {
+        timeToSet.Minute++;
+    }
+    else
+    {
+        timeToSet.Minute--;
+    }
 }
 
 void printDateTime(time_t t)
