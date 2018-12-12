@@ -3,6 +3,9 @@
 #include <Streaming.h>
 #include <OneButton.h>
 
+// ----- Local libraries
+#include "DateTimeUtils.h"
+
 // ----- PIN definition
 // Push buttons for clock setup
 const int MODE_SW_PIN = 8;
@@ -167,44 +170,45 @@ void updateMonth(updateAction action)
 {
     if (action == PLUS)
     {
-        timeToSet.Month++;
+        timeToSet.Month = timeToSet.Month == 12 ? 1 : timeToSet.Month + 1;
     }
     else
     {
-        timeToSet.Month--;
+        timeToSet.Month = timeToSet.Month == 1 ? 12 : timeToSet.Month - 1;
     }
 }
 void updateDay(updateAction action)
 {
+    int nbDaysInMonth = daysInMonth(timeToSet.Year, timeToSet.Month);
     if (action == PLUS)
     {
-        timeToSet.Day++;
+        timeToSet.Day = timeToSet.Day == nbDaysInMonth ? 1 : timeToSet.Day + 1;
     }
     else
     {
-        timeToSet.Day--;
+        timeToSet.Day = timeToSet.Day == nbDaysInMonth ? 31 : timeToSet.Day - 1;
     }
 }
 void updateHour(updateAction action)
 {
     if (action == PLUS)
     {
-        timeToSet.Hour++;
+        timeToSet.Hour = timeToSet.Hour == 23 ? 0 : timeToSet.Hour + 1;
     }
     else
     {
-        timeToSet.Hour--;
+        timeToSet.Hour = timeToSet.Hour == 0 ? 23 : timeToSet.Hour - 1;
     }
 }
 void updateMinute(updateAction action)
 {
     if (action == PLUS)
     {
-        timeToSet.Minute++;
+        timeToSet.Minute = timeToSet.Minute == 59 ? 0 : timeToSet.Minute + 1;
     }
     else
     {
-        timeToSet.Minute--;
+        timeToSet.Minute = timeToSet.Minute == 0 ? 59 : timeToSet.Minute - 1;
     }
 }
 
