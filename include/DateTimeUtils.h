@@ -1,6 +1,8 @@
 #ifndef DATETIMEUTILS_H
 #define DATETIMEUTILS_H
 
-unsigned int daysInMonth(unsigned int year, unsigned int month);
+#include <Arduino.h>
+
+byte daysInMonth(unsigned int year, byte month);
 
 #endif
