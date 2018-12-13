@@ -23,6 +23,7 @@ const byte alarmInterrupt = 2;
 // ----- Global vars
 unsigned long displayTimer = 0; // currently used for debugging purpose
 byte clockMode = 0;
+bool sleepMode = false;
 tmElements_t timeToSet;
 
 // ----- Buttons
@@ -81,6 +82,23 @@ void loop()
     }
 
     displayClock();
+
+    // alarms
+    // weekdays 20:00-07:30
+    // weekends 20:00-08:00 and 13:00-15:00
+    tmElements_t now;
+    RTC.read(now);
+    if (now.Wday == 1 || now.Wday == 7)
+    {
+        sleepMode = !((now.Hour >= 15 && now.Hour < 20) || (now.Hour >= 8 && now.Hour < 13));
+    }
+    else
+    {
+        sleepMode = !((now.Hour > 7 || (now.Hour == 7 && now.Minute >= 30)) && now.Hour < 20);
+    }
+
+    digitalWrite(awakeLed, !sleepMode);
+    digitalWrite(asleepLed, sleepMode);
 }
 
 void modeBtnClick()
