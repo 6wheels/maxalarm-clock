@@ -4,7 +4,7 @@
 #include <OneButton.h>
 
 // ----- Local libraries
-#include "DateTimeUtils.h"
+#include "ClockUtils.h"
 
 // ----- PIN definition
 // Push buttons for clock setup
@@ -28,14 +28,6 @@ OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
 
-// ----- Enum
-typedef enum
-{
-    PLUS,
-    MINUS
-} updateAction;
-// ----
-
 // ----- Prototypes
 void printDateTime(time_t t);
 void printDateTime(tmElements_t t);
@@ -43,11 +35,6 @@ void modeBtnClick();
 void minusBtnClick();
 void plusBtnClick();
 void displayClock();
-void updateYear(updateAction action);
-void updateMonth(updateAction action);
-void updateDay(updateAction action);
-void updateHour(updateAction action);
-void updateMinute(updateAction action);
 // -----
 
 void setup()
@@ -83,7 +70,6 @@ void loop()
     if (clockMode == 0)
     {
         RTC.read(timeToSet);
-        displayClock();
     }
     else if (clockMode == 6)
     {
@@ -91,18 +77,7 @@ void loop()
         clockMode = 0;
     }
 
-    if (millis() >= displayTimer)
-    {
-        if (clockMode != 0)
-        {
-            printDateTime(timeToSet);
-        }
-        else
-        {
-            printDateTime(RTC.get());
-        }
-        displayTimer = millis() + 1000;
-    }
+    displayClock();
 }
 
 void modeBtnClick()
@@ -116,19 +91,19 @@ void minusBtnClick()
     switch (clockMode)
     {
     case 1:
-        updateYear(MINUS);
+        updateYear(timeToSet, MINUS);
         break;
     case 2:
-        updateMonth(MINUS);
+        updateMonth(timeToSet, MINUS);
         break;
     case 3:
-        updateDay(MINUS);
+        updateDay(timeToSet, MINUS);
         break;
     case 4:
-        updateHour(MINUS);
+        updateHour(timeToSet, MINUS);
         break;
     case 5:
-        updateMinute(MINUS);
+        updateMinute(timeToSet, MINUS);
         break;
     }
 }
@@ -138,81 +113,36 @@ void plusBtnClick()
     switch (clockMode)
     {
     case 1:
-        updateYear(PLUS);
+        updateYear(timeToSet, PLUS);
         break;
     case 2:
-        updateMonth(PLUS);
+        updateMonth(timeToSet, PLUS);
         break;
     case 3:
-        updateDay(PLUS);
+        updateDay(timeToSet, PLUS);
         break;
     case 4:
-        updateHour(PLUS);
+        updateHour(timeToSet, PLUS);
         break;
     case 5:
-        updateMinute(PLUS);
+        updateMinute(timeToSet, PLUS);
         break;
     }
 }
 
 void displayClock()
 {
-}
-
-void updateYear(updateAction action)
-{
-    if (action == PLUS)
+    if (millis() >= displayTimer)
     {
-        timeToSet.Year++;
-    }
-    else
-    {
-        timeToSet.Year--;
-    }
-}
-void updateMonth(updateAction action)
-{
-    if (action == PLUS)
-    {
-        timeToSet.Month = timeToSet.Month == 12 ? 1 : timeToSet.Month + 1;
-    }
-    else
-    {
-        timeToSet.Month = timeToSet.Month == 1 ? 12 : timeToSet.Month - 1;
-    }
-}
-void updateDay(updateAction action)
-{
-    int nbDaysInMonth = daysInMonth(timeToSet.Year, timeToSet.Month);
-    if (action == PLUS)
-    {
-        timeToSet.Day = timeToSet.Day == nbDaysInMonth ? 1 : timeToSet.Day + 1;
-    }
-    else
-    {
-        timeToSet.Day = timeToSet.Day == nbDaysInMonth ? 31 : timeToSet.Day - 1;
-    }
-}
-void updateHour(updateAction action)
-{
-    if (action == PLUS)
-    {
-        timeToSet.Hour = timeToSet.Hour == 23 ? 0 : timeToSet.Hour + 1;
-    }
-    else
-    {
-        timeToSet.Hour = timeToSet.Hour == 0 ? 23 : timeToSet.Hour - 1;
-    }
-}
-void updateMinute(updateAction action)
-{
-    if (action == PLUS)
-    {
-        timeToSet.Minute = timeToSet.Minute == 59 ? 0 : timeToSet.Minute + 1;
-    }
-    else
-    {
-        timeToSet.Minute = timeToSet.Minute == 0 ? 59 : timeToSet.Minute - 1;
+        if (clockMode != 0)
+        {
+            printDateTime(timeToSet);
+        }
+        else
+        {
+            printDateTime(RTC.get());
+        }
+        displayTimer = millis() + 1000;
     }
 }
 
