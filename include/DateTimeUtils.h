@@ -5,4 +5,6 @@
 
 byte daysInMonth(unsigned int year, byte month);
 
+bool isLeap(unsigned int year);
+
 #endif
