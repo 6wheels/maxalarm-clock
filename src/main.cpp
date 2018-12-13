@@ -13,8 +13,8 @@ const int MINUS_SW_PIN = 9;
 const int PLUS_SW_PIN = 10;
 
 // asleep / awake LEDs
-const int awakeLed = 6;
-const int asleepLed = 7;
+const int awakeLed = 5;
+const int asleepLed = 6;
 // -----
 
 // ----- Global vars
@@ -61,6 +61,10 @@ void setup()
         setTime(0, 0, 0, 1, 12, 2018);
         RTC.set(now());
     }
+
+    // LED configuration
+    pinMode(awakeLed, OUTPUT);
+    pinMode(asleepLed, OUTPUT);
 
     // setup button handler
     modeBtn.attachClick(modeBtnClick);
