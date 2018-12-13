@@ -1,16 +1,22 @@
 #include <DateTimeUtils.h>
 
-unsigned int daysInMonth(unsigned int year, unsigned int month)
+byte daysInMonth(unsigned int year, byte month)
 {
-    unsigned int nbDaysInMonth = 0;
+    byte nbDaysInMonth = 0;
     if (month == 2)
     {
-        // compute number of days in the current month, according to the current year (leap or not)
-        nbDaysInMonth = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+        // compute number of days for february, according to the current year (leap or not)
+        nbDaysInMonth = isLeap(year) ? 29 : 28;
     }
     else
     {
+        // other months
         nbDaysInMonth = month <= 7 ? (month % 2 != 0 ? 31 : 30) : (month % 2 == 0 ? 31 : 30);
     }
     return nbDaysInMonth;
+}
+
+bool isLeap(unsigned int year)
+{
+    return ((1970 + year) > 0) && !((1970 + year) % 4) && (((1970 + year) % 100) || !((1970 + year) % 400));
 }
