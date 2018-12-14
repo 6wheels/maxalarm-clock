@@ -10,7 +10,7 @@ Why Max? because of my son's name.
 - 2 LEDs (a blue and a red one)
 - Resistors
   - 220Ω for the red led
-  - 440Ω for the blue led
+  - 470Ω for the blue led
   - 4.7kΩ for the SQW interrupt (currently unused)
 - 4*7 segment digits display using i2c bus
 
