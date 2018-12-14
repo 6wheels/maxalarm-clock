@@ -4,6 +4,7 @@
 #include <OneButton.h>
 
 // ----- Local libraries
+#include "main.h"
 #include "ClockUtils.h"
 
 // ----- PIN definition
@@ -30,15 +31,6 @@ tmElements_t timeToSet;
 OneButton modeBtn(8, true);
 OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
-// -----
-
-// ----- Prototypes
-void printDateTime(time_t t);
-void printDateTime(tmElements_t t);
-void modeBtnClick();
-void minusBtnClick();
-void plusBtnClick();
-void displayClock();
 // -----
 
 void setup()
