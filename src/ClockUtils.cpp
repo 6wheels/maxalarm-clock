@@ -1,7 +1,7 @@
 #include "ClockUtils.h"
 #include "DateTimeUtils.h"
 
-void updateYear(tmElements_t &timeToSet, updateAction action)
+void updateYear(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
     {
@@ -12,7 +12,7 @@ void updateYear(tmElements_t &timeToSet, updateAction action)
         timeToSet.Year--;
     }
 }
-void updateMonth(tmElements_t &timeToSet, updateAction action)
+void updateMonth(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
     {
@@ -23,7 +23,7 @@ void updateMonth(tmElements_t &timeToSet, updateAction action)
         timeToSet.Month = timeToSet.Month == 1 ? 12 : timeToSet.Month - 1;
     }
 }
-void updateDay(tmElements_t &timeToSet, updateAction action)
+void updateDay(tmElements_t &timeToSet, updateAction_t action)
 {
     int nbDaysInMonth = daysInMonth(timeToSet.Year, timeToSet.Month);
     if (action == PLUS)
@@ -35,7 +35,7 @@ void updateDay(tmElements_t &timeToSet, updateAction action)
         timeToSet.Day = timeToSet.Day == 1 ? nbDaysInMonth : timeToSet.Day - 1;
     }
 }
-void updateHour(tmElements_t &timeToSet, updateAction action)
+void updateHour(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
     {
@@ -46,7 +46,7 @@ void updateHour(tmElements_t &timeToSet, updateAction action)
         timeToSet.Hour = timeToSet.Hour == 0 ? 23 : timeToSet.Hour - 1;
     }
 }
-void updateMinute(tmElements_t &timeToSet, updateAction action)
+void updateMinute(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
     {
