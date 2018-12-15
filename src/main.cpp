@@ -16,9 +16,6 @@ const byte PLUS_SW_PIN = 10;
 // asleep / awake LEDs
 const byte awakeLed = 5;
 const byte asleepLed = 6;
-
-// alarm interrupt
-const byte alarmInterrupt = 2;
 // -----
 
 // ----- Global vars
