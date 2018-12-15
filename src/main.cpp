@@ -2,6 +2,8 @@
 #include <DS3232RTC.h>
 #include <Streaming.h>
 #include <OneButton.h>
+#include <TM1637.h>
+#include <TimerOne.h>
 
 // ----- Local libraries
 #include "main.h"
@@ -16,19 +18,35 @@ const byte PLUS_SW_PIN = 10;
 // asleep / awake LEDs
 const byte AWAKE_LED_PIN = 5;
 const byte ASLEEP_LED_PIN = 6;
+
+// 4*7 segment display
+const byte DIO = 11;
+const byte CLK = 12;
 // -----
 
 // ----- Global vars
+TM1637 tm1637(CLK, DIO);
+int8_t timeDisp[] = {0x00, 0x00, 0x00, 0x00};
+#define ON 1
+#define OFF 0
+unsigned char clockpoint = 1;
+unsigned char update;
+unsigned char halfsecond = 0;
+
 unsigned long displayTimer = 0; // currently used for debugging purpose
 byte clockMode = 0;
 bool sleepMode = false;
 tmElements_t timeToSet;
+tmElements_t currentTime;
 
 // ----- Buttons
 OneButton modeBtn(8, true);
 OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
+
+void timingISR();
+void timeUpdate(void);
 
 void setup()
 {
@@ -50,6 +68,12 @@ void setup()
     modeBtn.attachClick(modeBtnClick);
     minusBtn.attachClick(minusBtnClick);
     plusBtn.attachClick(plusBtnClick);
+
+    // setup display
+    tm1637.set();
+    tm1637.init();
+    Timer1.initialize(500000); // 500ms
+    Timer1.attachInterrupt(timingISR);
 }
 
 void loop()
@@ -70,20 +94,20 @@ void loop()
         clockMode = 0;
     }
 
+    // get current time from rtc
+    RTC.read(currentTime);
     displayClock();
 
     // alarms
     // weekdays 20:00-07:30
     // weekends 20:00-08:00 and 13:00-15:00
-    tmElements_t now;
-    RTC.read(now);
-    if (now.Wday == 1 || now.Wday == 7)
+    if (currentTime.Wday == 1 || currentTime.Wday == 7)
     {
-        sleepMode = !((now.Hour >= 15 && now.Hour < 20) || (now.Hour >= 8 && now.Hour < 13));
+        sleepMode = !((currentTime.Hour >= 15 && currentTime.Hour < 20) || (currentTime.Hour >= 8 && currentTime.Hour < 13));
     }
     else
     {
-        sleepMode = !((now.Hour > 7 || (now.Hour == 7 && now.Minute >= 30)) && now.Hour < 20);
+        sleepMode = !((currentTime.Hour > 7 || (currentTime.Hour == 7 && currentTime.Minute >= 30)) && currentTime.Hour < 20);
     }
 
     digitalWrite(AWAKE_LED_PIN, !sleepMode);
@@ -142,6 +166,26 @@ void plusBtnClick()
 
 void displayClock()
 {
+    // fixme update must be used for the time setup as well
+    if (update == ON)
+    {
+        timeUpdate();
+        tm1637.display(timeDisp);
+    }
+    switch (clockMode)
+    {
+        // todo
+    case 1:
+        int year = tmYearToCalendar(currentTime.Year);
+        timeDisp[3] = year % 10;
+        year = year / 10;
+        timeDisp[2] = year % 10;
+        year = year / 10;
+        timeDisp[1] = year % 10;
+        year = year / 10;
+        timeDisp[0] = year % 10;
+        tm1637.display(timeDisp);
+    }
     if (millis() >= displayTimer)
     {
         if (clockMode != 0)
@@ -154,6 +198,43 @@ void displayClock()
         }
         displayTimer = millis() + 1000;
     }
+}
+
+void timingISR()
+{
+    halfsecond++;
+    update = ON;
+    if (halfsecond == 2)
+    {
+        currentTime.Second++;
+        if (currentTime.Second == 60)
+        {
+            currentTime.Minute++;
+            if (currentTime.Minute == 60)
+            {
+                currentTime.Hour++;
+                if (currentTime.Hour == 24)
+                    currentTime.Hour = 0;
+                currentTime.Minute = 0;
+            }
+            currentTime.Second = 0;
+        }
+        halfsecond = 0;
+    }
+    clockpoint = (~clockpoint) & 0x01;
+}
+
+void timeUpdate(void)
+{
+    if (clockpoint)
+        tm1637.point(POINT_ON);
+    else
+        tm1637.point(POINT_OFF);
+    timeDisp[0] = currentTime.Hour / 10;
+    timeDisp[1] = currentTime.Hour % 10;
+    timeDisp[2] = currentTime.Minute / 10;
+    timeDisp[3] = currentTime.Minute % 10;
+    update = OFF;
 }
 
 void printDateTime(time_t t)
