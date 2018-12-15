@@ -14,8 +14,8 @@ const byte MINUS_SW_PIN = 9;
 const byte PLUS_SW_PIN = 10;
 
 // asleep / awake LEDs
-const byte awakeLed = 5;
-const byte asleepLed = 6;
+const byte AWAKE_LED_PIN = 5;
+const byte ASLEEP_LED_PIN = 6;
 // -----
 
 // ----- Global vars
@@ -43,8 +43,8 @@ void setup()
     }
 
     // LED configuration
-    pinMode(awakeLed, OUTPUT);
-    pinMode(asleepLed, OUTPUT);
+    pinMode(AWAKE_LED_PIN, OUTPUT);
+    pinMode(ASLEEP_LED_PIN, OUTPUT);
 
     // setup button handler
     modeBtn.attachClick(modeBtnClick);
@@ -86,8 +86,8 @@ void loop()
         sleepMode = !((now.Hour > 7 || (now.Hour == 7 && now.Minute >= 30)) && now.Hour < 20);
     }
 
-    digitalWrite(awakeLed, !sleepMode);
-    digitalWrite(asleepLed, sleepMode);
+    digitalWrite(AWAKE_LED_PIN, !sleepMode);
+    digitalWrite(ASLEEP_LED_PIN, sleepMode);
 }
 
 void modeBtnClick()
