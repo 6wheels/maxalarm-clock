@@ -8,6 +8,9 @@
 #include "main.h"
 #include "ClockUtils.h"
 
+// ----- DEBUG MODE
+//#define DEBUG
+
 // ----- PIN definition
 // Push buttons for clock setup
 const byte MODE_SW_PIN = 8;
@@ -49,8 +52,10 @@ void timeUpdate();
 
 void setup()
 {
+#ifdef DEBUG
     // setup serial
     Serial.begin(9600);
+#endif
 
     // init RTC if needed
     if (RTC.oscStopped(false))
@@ -235,6 +240,12 @@ void displayClock()
     case 6:
         halfsecond = 0;
     }
+    // compute halfsecond
+    if (halfsecond == 4)
+    {
+        halfsecond = 0;
+    }
+#ifdef DEBUG
     if (millis() >= displayTimer)
     {
         if (clockMode != 0)
@@ -247,11 +258,7 @@ void displayClock()
         }
         displayTimer = millis() + 1000;
     }
-    // compute halfsecond
-    if (halfsecond == 4)
-    {
-        halfsecond = 0;
-    }
+#endif
 }
 
 void timeUpdate()
