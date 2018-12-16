@@ -31,7 +31,7 @@ const uint8_t DOTS = 0b01000000;
 
 // ----- Global vars
 TM1637Display display(CLK, DIO);
-uint8_t timeDisp[] = {0x00, 0x00, 0x00, 0x00};
+uint8_t data[] = {0x00, 0x00, 0x00, 0x00};
 byte brightness = 2;
 byte halfsecond = 0;
 unsigned long clockDisplayTimer = 0;
@@ -217,12 +217,18 @@ void displayClock()
     case 4:
         if (halfsecond >= 2)
         {
-            uint8_t data[] = {display.encodeDigit(timeToSet.Hour / 10), display.encodeDigit(timeToSet.Hour % 10), display.encodeDigit(timeToSet.Minute / 10), display.encodeDigit(timeToSet.Minute % 10)};
+            data[0] = display.encodeDigit(timeToSet.Hour / 10);
+            data[1] = display.encodeDigit(timeToSet.Hour % 10);
+            data[2] = display.encodeDigit(timeToSet.Minute / 10);
+            data[3] = display.encodeDigit(timeToSet.Minute % 10);
             display.setSegments(data);
         }
         else
         {
-            uint8_t data[] = {0x00, 0x00, display.encodeDigit(timeToSet.Minute / 10), display.encodeDigit(timeToSet.Minute % 10)};
+            data[0] = 0x00;
+            data[1] = 0x00;
+            data[2] = display.encodeDigit(timeToSet.Minute / 10);
+            data[3] = display.encodeDigit(timeToSet.Minute % 10);
             display.setSegments(data);
         }
         break;
@@ -233,7 +239,10 @@ void displayClock()
         }
         else
         {
-            uint8_t data[] = {display.encodeDigit(timeToSet.Hour / 10), display.encodeDigit(timeToSet.Hour % 10), 0x00, 0x00};
+            data[0] = display.encodeDigit(timeToSet.Hour / 10);
+            data[1] = display.encodeDigit(timeToSet.Hour % 10);
+            data[2] = 0x00;
+            data[3] = 0x00;
             display.setSegments(data);
         }
         break;
