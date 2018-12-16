@@ -2,8 +2,7 @@
 #include <DS3232RTC.h>
 #include <Streaming.h>
 #include <OneButton.h>
-#include <TM1637.h>
-#include <TimerOne.h>
+#include <TM1637Display.h>
 
 // ----- Local libraries
 #include "main.h"
@@ -24,14 +23,15 @@ const byte DIO = 11;
 const byte CLK = 12;
 // -----
 
+// ----- Constants
+const uint8_t DOTS = 0b01000000;
+
 // ----- Global vars
-TM1637 tm1637(CLK, DIO);
-int8_t timeDisp[] = {0x00, 0x00, 0x00, 0x00};
-#define ON 1
-#define OFF 0
-unsigned char clockpoint = 1;
-unsigned char update;
-unsigned char halfsecond = 0;
+TM1637Display display(CLK, DIO);
+uint8_t timeDisp[] = {0x00, 0x00, 0x00, 0x00};
+byte brightness = 2;
+byte halfsecond = 0;
+unsigned long clockDisplayTimer = 0;
 
 unsigned long displayTimer = 0; // currently used for debugging purpose
 byte clockMode = 0;
@@ -45,8 +45,7 @@ OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
 
-void timingISR();
-void timeUpdate(void);
+void timeUpdate();
 
 void setup()
 {
@@ -70,10 +69,7 @@ void setup()
     plusBtn.attachClick(plusBtnClick);
 
     // setup display
-    tm1637.set();
-    tm1637.init();
-    Timer1.initialize(500000); // 500ms
-    Timer1.attachInterrupt(timingISR);
+    display.setBrightness(brightness);
 }
 
 void loop()
@@ -124,6 +120,9 @@ void minusBtnClick()
 {
     switch (clockMode)
     {
+    case 0:
+        display.setBrightness(brightness == 0 ? 0 : brightness--);
+        break;
     case 1:
         updateYear(timeToSet, MINUS);
         break;
@@ -146,6 +145,9 @@ void plusBtnClick()
 {
     switch (clockMode)
     {
+    case 0:
+        display.setBrightness(brightness == 7 ? 7 : brightness++);
+        break;
     case 1:
         updateYear(timeToSet, PLUS);
         break;
@@ -166,25 +168,72 @@ void plusBtnClick()
 
 void displayClock()
 {
-    // fixme update must be used for the time setup as well
-    if (update == ON)
+    if (millis() >= clockDisplayTimer)
     {
-        timeUpdate();
-        tm1637.display(timeDisp);
+        halfsecond++;
+        clockDisplayTimer = millis() + 250;
     }
+
     switch (clockMode)
     {
-        // todo
+    case 0:
+        timeUpdate();
+        break;
     case 1:
-        int year = tmYearToCalendar(currentTime.Year);
-        timeDisp[3] = year % 10;
-        year = year / 10;
-        timeDisp[2] = year % 10;
-        year = year / 10;
-        timeDisp[1] = year % 10;
-        year = year / 10;
-        timeDisp[0] = year % 10;
-        tm1637.display(timeDisp);
+        if (halfsecond >= 2)
+        {
+            display.showNumberDec(tmYearToCalendar(timeToSet.Year));
+        }
+        else
+        {
+            display.clear();
+        }
+        break;
+    case 2:
+        if (halfsecond >= 2)
+        {
+            display.showNumberDec(timeToSet.Month);
+        }
+        else
+        {
+            display.clear();
+        }
+        break;
+    case 3:
+        if (halfsecond >= 2)
+        {
+            display.showNumberDec(timeToSet.Day);
+        }
+        else
+        {
+            display.clear();
+        }
+        break;
+    case 4:
+        if (halfsecond >= 2)
+        {
+            uint8_t data[] = {display.encodeDigit(timeToSet.Hour / 10), display.encodeDigit(timeToSet.Hour % 10), display.encodeDigit(timeToSet.Minute / 10), display.encodeDigit(timeToSet.Minute % 10)};
+            display.setSegments(data);
+        }
+        else
+        {
+            uint8_t data[] = {0x00, 0x00, display.encodeDigit(timeToSet.Minute / 10), display.encodeDigit(timeToSet.Minute % 10)};
+            display.setSegments(data);
+        }
+        break;
+    case 5:
+        if (halfsecond >= 2)
+        {
+            display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
+        }
+        else
+        {
+            uint8_t data[] = {display.encodeDigit(timeToSet.Hour / 10), display.encodeDigit(timeToSet.Hour % 10), 0x00, 0x00};
+            display.setSegments(data);
+        }
+        break;
+    case 6:
+        halfsecond = 0;
     }
     if (millis() >= displayTimer)
     {
@@ -198,43 +247,16 @@ void displayClock()
         }
         displayTimer = millis() + 1000;
     }
-}
-
-void timingISR()
-{
-    halfsecond++;
-    update = ON;
-    if (halfsecond == 2)
+    // compute halfsecond
+    if (halfsecond == 4)
     {
-        currentTime.Second++;
-        if (currentTime.Second == 60)
-        {
-            currentTime.Minute++;
-            if (currentTime.Minute == 60)
-            {
-                currentTime.Hour++;
-                if (currentTime.Hour == 24)
-                    currentTime.Hour = 0;
-                currentTime.Minute = 0;
-            }
-            currentTime.Second = 0;
-        }
         halfsecond = 0;
     }
-    clockpoint = (~clockpoint) & 0x01;
 }
 
-void timeUpdate(void)
+void timeUpdate()
 {
-    if (clockpoint)
-        tm1637.point(POINT_ON);
-    else
-        tm1637.point(POINT_OFF);
-    timeDisp[0] = currentTime.Hour / 10;
-    timeDisp[1] = currentTime.Hour % 10;
-    timeDisp[2] = currentTime.Minute / 10;
-    timeDisp[3] = currentTime.Minute % 10;
-    update = OFF;
+    display.showNumberDecEx(currentTime.Hour * 100 + currentTime.Minute, halfsecond >= 2 ? DOTS : 0);
 }
 
 void printDateTime(time_t t)
