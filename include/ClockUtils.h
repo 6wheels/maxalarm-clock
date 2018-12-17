@@ -3,13 +3,11 @@
 
 #include <TimeLib.h>
 
-// ----- Enum
 typedef enum
 {
     PLUS,
     MINUS
 } updateAction_t;
-// ----
 
 void updateYear(tmElements_t &timeToSet, updateAction_t action);
 void updateMonth(tmElements_t &timeToSet, updateAction_t action);

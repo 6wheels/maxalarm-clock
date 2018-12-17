@@ -29,13 +29,11 @@ const byte CLK = 12;
 
 // ----- Global vars
 TM1637Display display(CLK, DIO);
-uint8_t data[] = {0x00, 0x00, 0x00, 0x00};
 byte brightness = 2;
 byte quarterSecond = 0;
 bool doDisplay = false;
 unsigned long clockDisplayTimer = 0;
 
-unsigned long displayTimer = 0; // currently used for debugging purpose
 byte clockMode = 0;
 bool sleepMode = false;
 tmElements_t timeToSet;

@@ -12,6 +12,7 @@ void updateYear(tmElements_t &timeToSet, updateAction_t action)
         timeToSet.Year--;
     }
 }
+
 void updateMonth(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
@@ -23,6 +24,7 @@ void updateMonth(tmElements_t &timeToSet, updateAction_t action)
         timeToSet.Month = timeToSet.Month == 1 ? 12 : timeToSet.Month - 1;
     }
 }
+
 void updateDay(tmElements_t &timeToSet, updateAction_t action)
 {
     int nbDaysInMonth = daysInMonth(timeToSet.Year, timeToSet.Month);
@@ -35,6 +37,7 @@ void updateDay(tmElements_t &timeToSet, updateAction_t action)
         timeToSet.Day = timeToSet.Day == 1 ? nbDaysInMonth : timeToSet.Day - 1;
     }
 }
+
 void updateHour(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
@@ -46,6 +49,7 @@ void updateHour(tmElements_t &timeToSet, updateAction_t action)
         timeToSet.Hour = timeToSet.Hour == 0 ? 23 : timeToSet.Hour - 1;
     }
 }
+
 void updateMinute(tmElements_t &timeToSet, updateAction_t action)
 {
     if (action == PLUS)
