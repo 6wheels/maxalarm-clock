@@ -6,6 +6,6 @@ void printDateTime(tmElements_t t);
 void modeBtnClick();
 void minusBtnClick();
 void plusBtnClick();
-void displayClock();
+void manageClock();
 
 #endif

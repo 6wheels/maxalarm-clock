@@ -7,6 +7,7 @@
 // ----- Local libraries
 #include "main.h"
 #include "ClockUtils.h"
+#include "ClockDisplay.h"
 
 // ----- DEBUG MODE
 //#define DEBUG
@@ -25,9 +26,6 @@ const byte ASLEEP_LED_PIN = 6;
 const byte DIO = 11;
 const byte CLK = 12;
 // -----
-
-// ----- Constants
-const uint8_t DOTS = 0b01000000;
 
 // ----- Global vars
 TM1637Display display(CLK, DIO);
@@ -48,8 +46,6 @@ OneButton modeBtn(8, true);
 OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
-
-void timeUpdate();
 
 void setup()
 {
@@ -98,7 +94,7 @@ void loop()
 
     // get current time from rtc
     RTC.read(currentTime);
-    displayClock();
+    manageClock();
 
     // alarms
     // weekdays 20:00-07:30
@@ -172,7 +168,7 @@ void plusBtnClick()
     }
 }
 
-void displayClock()
+void manageClock()
 {
     if (millis() >= clockDisplayTimer)
     {
@@ -183,68 +179,25 @@ void displayClock()
     switch (clockMode)
     {
     case 0:
-        timeUpdate();
+        displayCurrentTime(display, currentTime.Hour, currentTime.Minute, doDisplay);
         break;
     case 1:
-        if (doDisplay)
-        {
-            display.showNumberDec(tmYearToCalendar(timeToSet.Year));
-        }
-        else
-        {
-            display.clear();
-        }
+        displayYearSetup(display, timeToSet.Year, doDisplay);
         break;
     case 2:
-        if (doDisplay)
-        {
-            display.showNumberDec(timeToSet.Month);
-        }
-        else
-        {
-            display.clear();
-        }
+        displayMonthSetup(display, timeToSet.Month, doDisplay);
         break;
     case 3:
-        if (doDisplay)
-        {
-            display.showNumberDec(timeToSet.Day);
-        }
-        else
-        {
-            display.clear();
-        }
+        displayDaySetup(display, timeToSet.Day, doDisplay);
         break;
     case 4:
-        if (doDisplay)
-        {
-            display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
-        }
-        else
-        {
-            data[0] = 0x00;
-            data[1] = 0x00;
-            data[2] = display.encodeDigit(timeToSet.Minute / 10);
-            data[3] = display.encodeDigit(timeToSet.Minute % 10);
-            display.setSegments(data);
-        }
+        displayHourSetup(display, timeToSet.Hour, timeToSet.Minute, doDisplay);
         break;
     case 5:
-        if (doDisplay)
-        {
-            display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
-        }
-        else
-        {
-            data[0] = display.encodeDigit(timeToSet.Hour / 10);
-            data[1] = display.encodeDigit(timeToSet.Hour % 10);
-            data[2] = 0x00;
-            data[3] = 0x00;
-            display.setSegments(data);
-        }
+        displayMinuteSetup(display, timeToSet.Hour, timeToSet.Minute, doDisplay);
         break;
     }
-    // compute quarterSecond
+    // reset quarterSecond
     if (quarterSecond == 4)
     {
         quarterSecond = 0;
@@ -263,11 +216,6 @@ void displayClock()
         displayTimer = millis() + 1000;
     }
 #endif
-}
-
-void timeUpdate()
-{
-    display.showNumberDecEx(currentTime.Hour * 100 + currentTime.Minute, doDisplay ? DOTS : 0);
 }
 
 void printDateTime(time_t t)
