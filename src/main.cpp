@@ -126,7 +126,7 @@ void minusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.setBrightness(brightness == 0 ? 0 : brightness--);
+        display.setBrightness(brightness == 0 ? 0 : --brightness);
         break;
     case 1:
         updateYear(timeToSet, MINUS);
@@ -151,7 +151,7 @@ void plusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.setBrightness(brightness == 7 ? 7 : brightness++);
+        display.setBrightness(brightness == 7 ? 7 : ++brightness);
         break;
     case 1:
         updateYear(timeToSet, PLUS);
