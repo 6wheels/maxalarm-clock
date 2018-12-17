@@ -52,3 +52,4 @@ If you don't use PlatformIO, here are the librairies used in this project:
 - DS3232RTC, RTC read and write : https://github.com/JChristensen/DS3232RTC
 - Time, useful date and time manipulation: https://github.com/PaulStoffregen/Time
 - Streaming, to use the << operator for printing: https://platformio.org/lib/show/560/Streaming
+- TM1637, to handle the 4*7 segments display: https://github.com/avishorp/TM1637

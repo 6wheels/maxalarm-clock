@@ -2,10 +2,15 @@
 #include <DS3232RTC.h>
 #include <Streaming.h>
 #include <OneButton.h>
+#include <TM1637Display.h>
 
 // ----- Local libraries
 #include "main.h"
 #include "ClockUtils.h"
+#include "ClockDisplay.h"
+
+// ----- DEBUG MODE
+//#define DEBUG
 
 // ----- PIN definition
 // Push buttons for clock setup
@@ -16,13 +21,23 @@ const byte PLUS_SW_PIN = 10;
 // asleep / awake LEDs
 const byte AWAKE_LED_PIN = 5;
 const byte ASLEEP_LED_PIN = 6;
+
+// 4*7 segment display
+const byte DIO = 11;
+const byte CLK = 12;
 // -----
 
 // ----- Global vars
-unsigned long displayTimer = 0; // currently used for debugging purpose
+TM1637Display display(CLK, DIO);
+byte brightness = 2;
+byte quarterSecond = 0;
+bool doDisplay = false;
+unsigned long clockDisplayTimer = 0;
+
 byte clockMode = 0;
 bool sleepMode = false;
 tmElements_t timeToSet;
+tmElements_t currentTime;
 
 // ----- Buttons
 OneButton modeBtn(8, true);
@@ -32,8 +47,10 @@ OneButton plusBtn(10, true);
 
 void setup()
 {
+#ifdef DEBUG
     // setup serial
     Serial.begin(9600);
+#endif
 
     // init RTC if needed
     if (RTC.oscStopped(false))
@@ -50,6 +67,9 @@ void setup()
     modeBtn.attachClick(modeBtnClick);
     minusBtn.attachClick(minusBtnClick);
     plusBtn.attachClick(plusBtnClick);
+
+    // setup display
+    display.setBrightness(brightness);
 }
 
 void loop()
@@ -70,20 +90,20 @@ void loop()
         clockMode = 0;
     }
 
-    displayClock();
+    // get current time from rtc
+    RTC.read(currentTime);
+    manageClock();
 
     // alarms
     // weekdays 20:00-07:30
     // weekends 20:00-08:00 and 13:00-15:00
-    tmElements_t now;
-    RTC.read(now);
-    if (now.Wday == 1 || now.Wday == 7)
+    if (currentTime.Wday == 1 || currentTime.Wday == 7)
     {
-        sleepMode = !((now.Hour >= 15 && now.Hour < 20) || (now.Hour >= 8 && now.Hour < 13));
+        sleepMode = !((currentTime.Hour >= 15 && currentTime.Hour < 20) || (currentTime.Hour >= 8 && currentTime.Hour < 13));
     }
     else
     {
-        sleepMode = !((now.Hour > 7 || (now.Hour == 7 && now.Minute >= 30)) && now.Hour < 20);
+        sleepMode = !((currentTime.Hour > 7 || (currentTime.Hour == 7 && currentTime.Minute >= 30)) && currentTime.Hour < 20);
     }
 
     digitalWrite(AWAKE_LED_PIN, !sleepMode);
@@ -100,6 +120,9 @@ void minusBtnClick()
 {
     switch (clockMode)
     {
+    case 0:
+        display.setBrightness(brightness == 0 ? 0 : --brightness);
+        break;
     case 1:
         updateYear(timeToSet, MINUS);
         break;
@@ -122,6 +145,9 @@ void plusBtnClick()
 {
     switch (clockMode)
     {
+    case 0:
+        display.setBrightness(brightness == 7 ? 7 : ++brightness);
+        break;
     case 1:
         updateYear(timeToSet, PLUS);
         break;
@@ -140,8 +166,41 @@ void plusBtnClick()
     }
 }
 
-void displayClock()
+void manageClock()
 {
+    if (millis() >= clockDisplayTimer)
+    {
+        quarterSecond++;
+        clockDisplayTimer = millis() + 250;
+    }
+    doDisplay = quarterSecond >= 2;
+    switch (clockMode)
+    {
+    case 0:
+        displayCurrentTime(display, currentTime.Hour, currentTime.Minute, doDisplay);
+        break;
+    case 1:
+        displayYearSetup(display, timeToSet.Year, doDisplay);
+        break;
+    case 2:
+        displayMonthSetup(display, timeToSet.Month, doDisplay);
+        break;
+    case 3:
+        displayDaySetup(display, timeToSet.Day, doDisplay);
+        break;
+    case 4:
+        displayHourSetup(display, timeToSet.Hour, timeToSet.Minute, doDisplay);
+        break;
+    case 5:
+        displayMinuteSetup(display, timeToSet.Hour, timeToSet.Minute, doDisplay);
+        break;
+    }
+    // reset quarterSecond
+    if (quarterSecond == 4)
+    {
+        quarterSecond = 0;
+    }
+#ifdef DEBUG
     if (millis() >= displayTimer)
     {
         if (clockMode != 0)
@@ -154,6 +213,7 @@ void displayClock()
         }
         displayTimer = millis() + 1000;
     }
+#endif
 }
 
 void printDateTime(time_t t)
