@@ -242,8 +242,6 @@ void displayClock()
             display.setSegments(data);
         }
         break;
-    case 6:
-        halfsecond = 0;
     }
     // compute halfsecond
     if (halfsecond == 4)
