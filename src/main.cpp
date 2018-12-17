@@ -33,7 +33,8 @@ const uint8_t DOTS = 0b01000000;
 TM1637Display display(CLK, DIO);
 uint8_t data[] = {0x00, 0x00, 0x00, 0x00};
 byte brightness = 2;
-byte halfsecond = 0;
+byte quarterSecond = 0;
+bool doDisplay = false;
 unsigned long clockDisplayTimer = 0;
 
 unsigned long displayTimer = 0; // currently used for debugging purpose
@@ -175,17 +176,17 @@ void displayClock()
 {
     if (millis() >= clockDisplayTimer)
     {
-        halfsecond++;
+        quarterSecond++;
         clockDisplayTimer = millis() + 250;
     }
-
+    doDisplay = quarterSecond >= 2;
     switch (clockMode)
     {
     case 0:
         timeUpdate();
         break;
     case 1:
-        if (halfsecond >= 2)
+        if (doDisplay)
         {
             display.showNumberDec(tmYearToCalendar(timeToSet.Year));
         }
@@ -195,7 +196,7 @@ void displayClock()
         }
         break;
     case 2:
-        if (halfsecond >= 2)
+        if (doDisplay)
         {
             display.showNumberDec(timeToSet.Month);
         }
@@ -205,7 +206,7 @@ void displayClock()
         }
         break;
     case 3:
-        if (halfsecond >= 2)
+        if (doDisplay)
         {
             display.showNumberDec(timeToSet.Day);
         }
@@ -215,7 +216,7 @@ void displayClock()
         }
         break;
     case 4:
-        if (halfsecond >= 2)
+        if (doDisplay)
         {
             display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
         }
@@ -229,7 +230,7 @@ void displayClock()
         }
         break;
     case 5:
-        if (halfsecond >= 2)
+        if (doDisplay)
         {
             display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
         }
@@ -243,10 +244,10 @@ void displayClock()
         }
         break;
     }
-    // compute halfsecond
-    if (halfsecond == 4)
+    // compute quarterSecond
+    if (quarterSecond == 4)
     {
-        halfsecond = 0;
+        quarterSecond = 0;
     }
 #ifdef DEBUG
     if (millis() >= displayTimer)
@@ -266,7 +267,7 @@ void displayClock()
 
 void timeUpdate()
 {
-    display.showNumberDecEx(currentTime.Hour * 100 + currentTime.Minute, halfsecond >= 2 ? DOTS : 0);
+    display.showNumberDecEx(currentTime.Hour * 100 + currentTime.Minute, doDisplay ? DOTS : 0);
 }
 
 void printDateTime(time_t t)
