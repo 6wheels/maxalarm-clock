@@ -217,11 +217,7 @@ void displayClock()
     case 4:
         if (halfsecond >= 2)
         {
-            data[0] = display.encodeDigit(timeToSet.Hour / 10);
-            data[1] = display.encodeDigit(timeToSet.Hour % 10);
-            data[2] = display.encodeDigit(timeToSet.Minute / 10);
-            data[3] = display.encodeDigit(timeToSet.Minute % 10);
-            display.setSegments(data);
+            display.showNumberDecEx(timeToSet.Hour * 100 + timeToSet.Minute, DOTS);
         }
         else
         {
