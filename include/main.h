@@ -6,11 +6,11 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-void printDateTime(time_t t);
-void printDateTime(tmElements_t t);
-void modeBtnClick();
-void minusBtnClick();
-void plusBtnClick();
-void manageClock();
+void printDateTime(const time_t t);
+void printDateTime(const tmElements_t t);
+void modeBtnClick(void);
+void minusBtnClick(void);
+void plusBtnClick(void);
+void manageClock(void);
 
 #endif

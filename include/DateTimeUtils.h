@@ -8,7 +8,7 @@
 
 #include <Arduino.h>
 
-byte daysInMonth(unsigned int year, byte month);
-bool isLeap(unsigned int year);
+byte daysInMonth(const unsigned int year, const byte month);
+bool isLeap(const unsigned int year);
 
 #endif

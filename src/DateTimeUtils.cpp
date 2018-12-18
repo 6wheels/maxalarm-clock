@@ -5,7 +5,7 @@
 
 #include <DateTimeUtils.h>
 
-byte daysInMonth(unsigned int year, byte month)
+byte daysInMonth(const unsigned int year, const byte month)
 {
     byte nbDaysInMonth = 0;
     if (month == 2)
@@ -21,7 +21,7 @@ byte daysInMonth(unsigned int year, byte month)
     return nbDaysInMonth;
 }
 
-bool isLeap(unsigned int year)
+bool isLeap(const unsigned int year)
 {
     return ((1970 + year) > 0) && !((1970 + year) % 4) && (((1970 + year) % 100) || !((1970 + year) % 400));
 }

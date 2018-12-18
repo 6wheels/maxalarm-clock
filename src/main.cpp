@@ -224,7 +224,7 @@ void manageClock()
 #endif
 }
 
-void printDateTime(time_t t)
+void printDateTime(const time_t t)
 {
     Serial << ((day(t) < 10) ? "0" : "") << _DEC(day(t));
     Serial << monthShortStr(month(t)) << _DEC(year(t)) << ' ';
@@ -233,7 +233,7 @@ void printDateTime(time_t t)
     Serial << ((second(t) < 10) ? "0" : "") << _DEC(second(t)) << endl;
 }
 
-void printDateTime(tmElements_t t)
+void printDateTime(const tmElements_t t)
 {
     Serial << t.Day << "-" << t.Month << "-" << t.Year + 1970 << " " << t.Hour << ":" << t.Minute << ":" << t.Second << endl;
 }
