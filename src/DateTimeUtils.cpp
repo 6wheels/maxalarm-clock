@@ -1,3 +1,8 @@
+// Maxalarm-clock
+// https://gitlab.com/6wheels/maxalarm-clock
+// Copyright (C) 2018 by Bertrand Ciroux and licensed under
+// MIT https://opensource.org/licenses/MIT
+
 #include <DateTimeUtils.h>
 
 byte daysInMonth(unsigned int year, byte month)

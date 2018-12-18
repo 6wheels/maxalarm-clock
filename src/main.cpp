@@ -1,3 +1,8 @@
+// Maxalarm-clock
+// https://gitlab.com/6wheels/maxalarm-clock
+// Copyright (C) 2018 by Bertrand Ciroux and licensed under
+// MIT https://opensource.org/licenses/MIT
+
 #include <Arduino.h>
 #include <DS3232RTC.h>
 #include <Streaming.h>
@@ -84,13 +89,15 @@ void loop()
     {
         RTC.read(timeToSet);
     }
+    // going back to clock display mode
     else if (clockMode == 6)
     {
-        RTC.write(timeToSet);
         clockMode = 0;
+        // write to RTC after setup
+        RTC.write(timeToSet);
     }
 
-    // get current time from rtc
+    // update the current time with the one stored in rtc
     RTC.read(currentTime);
     manageClock();
 
@@ -105,7 +112,6 @@ void loop()
     {
         sleepMode = !((currentTime.Hour > 7 || (currentTime.Hour == 7 && currentTime.Minute >= 30)) && currentTime.Hour < 20);
     }
-
     digitalWrite(AWAKE_LED_PIN, !sleepMode);
     digitalWrite(ASLEEP_LED_PIN, sleepMode);
 }
@@ -168,11 +174,13 @@ void plusBtnClick()
 
 void manageClock()
 {
+    // set quarter second and display delay
     if (millis() >= clockDisplayTimer)
     {
         quarterSecond++;
         clockDisplayTimer = millis() + 250;
     }
+    // compute condition to be able to make the display blink
     doDisplay = quarterSecond >= 2;
     switch (clockMode)
     {
