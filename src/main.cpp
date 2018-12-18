@@ -3,9 +3,14 @@
 // Copyright (C) 2018 by Bertrand Ciroux and licensed under
 // MIT https://opensource.org/licenses/MIT
 
+// ----- DEBUG MODE
+//#define DEBUG
+
 #include <Arduino.h>
 #include <DS3232RTC.h>
+#ifdef DEBUG
 #include <Streaming.h>
+#endif
 #include <OneButton.h>
 #include <TM1637.h>
 
@@ -13,9 +18,6 @@
 #include "main.h"
 #include "ClockUtils.h"
 #include "ClockDisplay.h"
-
-// ----- DEBUG MODE
-//#define DEBUG
 
 // ----- PIN definition
 // Push buttons for clock setup
@@ -120,7 +122,9 @@ void loop()
 void modeBtnClick()
 {
     clockMode++;
+#ifdef DEBUG
     Serial << "ClockMode: " << clockMode << endl;
+#endif
 }
 
 void minusBtnClick()
@@ -225,6 +229,7 @@ void manageClock()
 #endif
 }
 
+#ifdef DEBUG
 void printDateTime(const time_t t)
 {
     Serial << ((day(t) < 10) ? "0" : "") << _DEC(day(t));
@@ -238,3 +243,4 @@ void printDateTime(const tmElements_t t)
 {
     Serial << t.Day << "-" << t.Month << "-" << t.Year + 1970 << " " << t.Hour << ":" << t.Minute << ":" << t.Second << endl;
 }
+#endif
