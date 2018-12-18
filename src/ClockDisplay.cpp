@@ -6,77 +6,107 @@
 #include "ClockDisplay.h"
 #include "Constants.h"
 
-void displayCurrentTime(TM1637Display display, const byte hour, const byte minute, const bool doDisplay)
+int8_t data[] = {0x00, 0x00, 0x00, 0x00};
+
+void displayCurrentTime(TM1637 display, const byte hour, const byte minute, const bool doDisplay)
 {
-    display.showNumberDecEx(hour * 100 + minute, doDisplay ? DOTS : 0);
+    data[0] = hour < 10 ? 0x7f : hour / 10;
+    data[1] = hour % 10;
+    data[2] = minute / 10;
+    data[3] = minute % 10;
+    display.point(doDisplay);
+    display.display(data);
 }
 
-void displayYearSetup(TM1637Display display, const byte year, const bool doDisplay)
+void displayYearSetup(TM1637 display, const byte year, const bool doDisplay)
 {
+    display.point(false);
     if (doDisplay)
     {
-        display.showNumberDec(year + 1970);
+        data[0] = (year + 1970) / 1000;
+        data[1] = (year + 1970) / 100 % 10;
+        data[2] = (year + 1970) / 10 % 10;
+        data[3] = (year + 1970) % 10;
+        display.display(data);
     }
     else
     {
-        display.clear();
+        display.init();
     }
 }
 
-void displayMonthSetup(TM1637Display display, const byte month, const bool doDisplay)
+void displayMonthSetup(TM1637 display, const byte month, const bool doDisplay)
 {
+    display.point(false);
     if (doDisplay)
     {
-        display.showNumberDec(month);
+        data[0] = 0x7f;
+        data[1] = 0x7f;
+        data[2] = month / 10;
+        data[3] = month % 10;
+        display.display(data);
     }
     else
     {
-        display.clear();
+        display.init();
     }
 }
 
-void displayDaySetup(TM1637Display display, const byte day, const bool doDisplay)
+void displayDaySetup(TM1637 display, const byte day, const bool doDisplay)
 {
+    display.point(false);
     if (doDisplay)
     {
-        display.showNumberDec(day);
+        data[0] = 0x7f;
+        data[1] = 0x7f;
+        data[2] = day / 10;
+        data[3] = day % 10;
+        display.display(data);
     }
     else
     {
-        display.clear();
+        display.init();
     }
 }
 
-void displayHourSetup(TM1637Display display, const byte hour, const byte minute, const bool doDisplay)
+void displayHourSetup(TM1637 display, const byte hour, const byte minute, const bool doDisplay)
 {
+    display.point(doDisplay);
     if (doDisplay)
     {
-        display.showNumberDecEx(hour * 100 + minute, DOTS);
+        data[0] = hour < 10 ? 0x7f : hour / 10;
+        data[1] = hour % 10;
+        data[2] = minute / 10;
+        data[3] = minute % 10;
+        display.display(data);
     }
     else
     {
-        byte data[] = {
-            0x00,
-            0x00,
-            display.encodeDigit(minute / 10),
-            display.encodeDigit(minute % 10)};
-        display.setSegments(data);
+        data[0] = 0x7f;
+        data[1] = 0x7f;
+        data[2] = minute / 10;
+        data[3] = minute % 10;
+        display.display(data);
     }
 }
 
-void displayMinuteSetup(TM1637Display display, const byte hour, const byte minute, const bool doDisplay)
+void displayMinuteSetup(TM1637 display, const byte hour, const byte minute, const bool doDisplay)
 {
+    display.point(doDisplay);
     if (doDisplay)
     {
-        display.showNumberDecEx(hour * 100 + minute, DOTS);
+        data[0] = hour < 10 ? 0x7f : hour / 10;
+        data[1] = hour % 10;
+        data[2] = minute / 10;
+        data[3] = minute % 10;
+        display.display(data);
     }
     else
     {
-        byte data[] = {
-            display.encodeDigit(hour / 10),
-            display.encodeDigit(hour % 10),
-            0x00,
-            0x00};
-        display.setSegments(data);
+        data[0] = hour < 10 ? 0x7f : hour / 10;
+        data[1] = hour % 10;
+        data[2] = 0x7f;
+        data[3] = 0x7f;
+        display.display(data);
     }
 }

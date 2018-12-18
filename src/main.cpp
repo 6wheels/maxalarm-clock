@@ -7,7 +7,7 @@
 #include <DS3232RTC.h>
 #include <Streaming.h>
 #include <OneButton.h>
-#include <TM1637Display.h>
+#include <TM1637.h>
 
 // ----- Local libraries
 #include "main.h"
@@ -33,7 +33,7 @@ const byte CLK = 12;
 // -----
 
 // ----- Global vars
-TM1637Display display(CLK, DIO);
+TM1637 display(CLK, DIO);
 byte brightness = 2;
 byte quarterSecond = 0;
 bool doDisplay = false;
@@ -74,7 +74,8 @@ void setup()
     plusBtn.attachClick(plusBtnClick);
 
     // setup display
-    display.setBrightness(brightness);
+    display.set(brightness);
+    display.init();
 }
 
 void loop()
@@ -127,7 +128,7 @@ void minusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.setBrightness(brightness == 0 ? 0 : --brightness);
+        display.set(brightness == 0 ? 0 : --brightness);
         break;
     case 1:
         updateYear(timeToSet, MINUS);
@@ -152,7 +153,7 @@ void plusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.setBrightness(brightness == 7 ? 7 : ++brightness);
+        display.set(brightness == 7 ? 7 : ++brightness);
         break;
     case 1:
         updateYear(timeToSet, PLUS);
