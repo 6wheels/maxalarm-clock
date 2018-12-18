@@ -20,6 +20,7 @@ Why Max? because of my son's name.
 3. Adjust the pin numbers in the `main.cpp` if you changes the wiring
 4. Upload and test!
 
+### Adjust date and time
 By default, if the RTC module is powered for the first or when replacing the battery, the date is set to December, 1st, 2018, 00:00:00.
 - Use `mode button` (default pin 8) to cycle through these steps:
 ```
@@ -44,7 +45,10 @@ By default, if the RTC module is powered for the first or when replacing the bat
 ```
 - Use `-` (default pin 9) and `+` (default pin 10) buttons to adjust values
 
-Time is written to RTC module when returning to mode 0.
+Time is written to RTC module when returning to mode 0. Seconds are also reset to 0 when going back to mode 0.
+
+### Adjust brightness
+Use `-` (default pin 9) and `+` (default pin 10) buttons to adjust brightness of the clock display.
 
 ## Librairies
 If you don't use PlatformIO, here are the librairies used in this project:
