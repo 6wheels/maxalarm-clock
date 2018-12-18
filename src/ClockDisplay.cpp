@@ -4,7 +4,6 @@
 // MIT https://opensource.org/licenses/MIT
 
 #include "ClockDisplay.h"
-#include "Constants.h"
 
 int8_t data[] = {0x00, 0x00, 0x00, 0x00};
 
