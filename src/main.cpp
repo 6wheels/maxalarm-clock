@@ -35,6 +35,9 @@ const byte CLK = 12;
 // -----
 
 // ----- Global vars
+#ifdef DEBUG
+unsigned long displayTimer = 0;
+#endif
 TM1637 display(CLK, DIO);
 byte brightness = 2;
 byte quarterSecond = 0;
