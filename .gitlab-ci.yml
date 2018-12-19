@@ -9,4 +9,3 @@ before_script:
 job:
   stage: test
   script: "platformio ci -C platformio.ini -b uno -l include ."
-  only: [master]
