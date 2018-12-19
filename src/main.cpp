@@ -13,6 +13,7 @@
 #endif
 #include <OneButton.h>
 #include <TM1637.h>
+#include <SevenSegmentTM1637.h>
 
 // ----- Local libraries
 #include "main.h"
@@ -38,7 +39,8 @@ const byte CLK = 12;
 #ifdef DEBUG
 unsigned long displayTimer = 0;
 #endif
-TM1637 display(CLK, DIO);
+// TM1637 display(CLK, DIO);
+SevenSegmentTM1637 display(CLK, DIO);
 byte brightness = 2;
 byte quarterSecond = 0;
 bool doDisplay = false;
@@ -54,6 +56,8 @@ OneButton modeBtn(8, true);
 OneButton minusBtn(9, true);
 OneButton plusBtn(10, true);
 // -----
+
+void modeBtnLongPress();
 
 void setup()
 {
@@ -77,10 +81,22 @@ void setup()
     modeBtn.attachClick(modeBtnClick);
     minusBtn.attachClick(minusBtnClick);
     plusBtn.attachClick(plusBtnClick);
+    modeBtn.attachLongPressStart(modeBtnLongPress);
 
     // setup display
-    display.set(brightness);
+    display.setBacklight(50);
     display.init();
+}
+
+void modeBtnLongPress()
+{
+    if (clockMode == 10)
+    {
+        clockMode = 0;
+        return;
+    }
+    clockMode = 10;
+    display.print(" red");
 }
 
 void loop()
@@ -136,7 +152,7 @@ void minusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.set(brightness == 0 ? 0 : --brightness);
+        // display.setBacklight(brightness == 0 ? 0 : --brightness);
         break;
     case 1:
         updateYear(timeToSet, MINUS);
@@ -161,7 +177,7 @@ void plusBtnClick()
     switch (clockMode)
     {
     case 0:
-        display.set(brightness == 7 ? 7 : ++brightness);
+        // display.set(brightness == 7 ? 7 : ++brightness);
         break;
     case 1:
         updateYear(timeToSet, PLUS);

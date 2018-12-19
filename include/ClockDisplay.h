@@ -7,13 +7,14 @@
 #define CLOCKDISPLAY_H
 
 #include <Arduino.h>
-#include <TM1637.h>
+// #include <TM1637.h>
+#include <SevenSegmentTM1637.h>
 
-void displayCurrentTime(TM1637 display, const byte hour, const byte minute, const bool doDisplay);
-void displayYearSetup(TM1637 display, const byte year, const bool doDisplay);
-void displayMonthSetup(TM1637 display, const byte month, const bool doDisplay);
-void displayDaySetup(TM1637 display, const byte day, const bool doDisplay);
-void displayHourSetup(TM1637 display, const byte hour, const byte minute, const bool doDisplay);
-void displayMinuteSetup(TM1637 display, const byte hour, const byte minute, const bool doDisplay);
+void displayCurrentTime(SevenSegmentTM1637 display, const byte hour, const byte minute, const bool doDisplay);
+void displayYearSetup(SevenSegmentTM1637 display, const byte year, const bool doDisplay);
+void displayMonthSetup(SevenSegmentTM1637 display, const byte month, const bool doDisplay);
+void displayDaySetup(SevenSegmentTM1637 display, const byte day, const bool doDisplay);
+void displayHourSetup(SevenSegmentTM1637 display, const byte hour, const byte minute, const bool doDisplay);
+void displayMinuteSetup(SevenSegmentTM1637 display, const byte hour, const byte minute, const bool doDisplay);
 
 #endif
