@@ -1,3 +1,5 @@
+![](https://img.shields.io/gitlab/pipeline/6wheels/maxalarm-clock/master.svg?style=for-the-badge)
+
 # Maxalarm-clock
 ## Description
 This is a simple alarm-clock for children. A blue led lights when it's time to wake up, a red led indicates to stay in bed.
