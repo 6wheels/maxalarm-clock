@@ -100,6 +100,7 @@ void loop()
     {
         clockMode = 0;
         // write to RTC after setup
+        timeToSet.Second = 0;
         RTC.write(timeToSet);
     }
 
