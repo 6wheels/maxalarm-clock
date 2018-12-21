@@ -117,7 +117,7 @@ void loop()
     }
     else
     {
-        sleepMode = !((currentTime.Hour > 7 || (currentTime.Hour == 7 && currentTime.Minute >= 30)) && currentTime.Hour < 20);
+        sleepMode = !(((currentTime.Hour > 7 || (currentTime.Hour == 7 && currentTime.Minute >= 30)) && currentTime.Hour < 13) || (currentTime.Hour >= 15 && currentTime.Hour < 20));
     }
     digitalWrite(AWAKE_LED_PIN, !sleepMode);
     digitalWrite(ASLEEP_LED_PIN, sleepMode);
