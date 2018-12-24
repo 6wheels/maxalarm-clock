@@ -52,6 +52,16 @@ Time is written to RTC module when returning to mode 0. Seconds are also reset t
 ### Adjust brightness
 Use `-` (default pin 9) and `+` (default pin 10) buttons to adjust brightness of the clock display.
 
+### Alarm setup
+Sleep times are hardcoded. This is intended because, 3 buttons and a limited display is not enough to be able to configure them easily.
+In the `loop` function, look for the `sleepMode` boolean use (at the end of the function) and adjust to your needs.
+Example:
+```cpp
+// alarms
+// everyday 20:00-08:00 and 13:00-15:00
+sleepMode = currentTime.Hour >= 20 || currentTime.Hour < 8 || (currentTime.Hour >= 13 && currentTime.Hour < 15);
+```
+
 ## Librairies
 If you don't use PlatformIO, here are the librairies used in this project:
 - OneButton, easy to use button handling: https://github.com/mathertel/OneButton
