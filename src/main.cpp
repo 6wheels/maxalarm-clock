@@ -109,8 +109,8 @@ void loop()
     manageClock();
 
     // alarms
-    // everyday 20:00-08:00 and 13:00-15:00
-    sleepMode = currentTime.Hour >= 20 || currentTime.Hour < 8 || (currentTime.Hour >= 13 && currentTime.Hour < 15);
+    // everyday 20:00-08:00 and 13:00-15:30
+    sleepMode = currentTime.Hour >= 20 || currentTime.Hour < 8 || (currentTime.Hour >= 13 && currentTime.Hour < 15) || (currentTime.Hour == 15 && currentTime.Minute < 30);
     digitalWrite(AWAKE_LED_PIN, !sleepMode);
     digitalWrite(ASLEEP_LED_PIN, sleepMode);
 }
